@@ -1,0 +1,17 @@
+{
+    "Name":"testopertion",
+    "Insert":"insert into testreplication (id, name) values (1, \"test_bybase_replic\")",
+    "Update":[
+        {
+            "Update":{
+                    "Str":"update testreplication set name=\"test_bybase_replic_update\" where id = 1"
+                    }
+            },
+            {
+            "Update":{
+                    "Str":"update testreplication set name=\"test_bybase_replic_update_two\" where id = 1"
+                     }
+            }
+    ],
+    "Delete":"delete testreplication where id = 1" 
+}

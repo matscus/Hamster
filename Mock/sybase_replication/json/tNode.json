@@ -1,0 +1,12 @@
+{
+    "Tablename":"tNode",
+    "InsertDeleteCount":1,
+    "UpdateCount":62,
+    "Insert":"insert into tNode (Name) values(\"test node\")",
+    "Update":[
+        {
+            "Str":"update tNode set Name=\"test_node_update\" where NodeID = ?"
+            }
+    ],
+    "Delete":"delete tNode where NodeID = ?" 
+}

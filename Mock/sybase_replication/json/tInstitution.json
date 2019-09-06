@@ -1,0 +1,27 @@
+{
+    "Tablename":"tInstitution",
+    "InsertDeleteCount":84,
+    "UpdateCount":442,
+    "Insert":"insert into tInstitution (Name,Name1,Name2,BIC,AccRcv,Brief,BranchID) values(\"test name\",\"test name2\",\"test name3\",\"test bic\",\"test\",\"test\",1488)",
+    "Update":[
+            {
+                "Str":"update tInstitution set Name=\"test_nname1_update\" where InstitutionID = ?"
+            },
+            {
+                "Str":"update tInstitution set Name1=\"test_nema2_update\" where InstitutionID = ?"
+            },
+            {
+                "Str":"update tInstitution set Name2=\"test_name2_update\" where InstitutionID = ?"
+            },
+            {
+                "Str":"update tInstitution set BIC=\"test_BIC_update\" where InstitutionID = ?"
+            },
+            {
+                "Str":"update tInstitution set AccRcv=\"test_AccRcv_update\" where InstitutionID = ?"
+            },
+            {
+                "Str":"update tInstitution set Brief=\"test_Brief_update\" where InstitutionID = ?"
+            }
+    ],
+    "Delete":"delete tInstitution where InstitutionID = ?" 
+}

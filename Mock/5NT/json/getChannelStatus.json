@@ -1,0 +1,17 @@
+{
+    "data": {
+      "channel": [
+        {
+          "clientInfo": {
+            "systemId": "homebank"
+          },
+          "state": {
+            "code": "active",
+            "name": "ACTIVE",
+            "date": "2005-01-21"
+          }
+        }
+      ]
+    },
+    "status": "success"
+  }

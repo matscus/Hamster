@@ -1,0 +1,61 @@
+{
+    "data": {
+      "wills": [
+        {
+          "id": "100000801142",
+          "kind": "Завещательное распоряжение внешнее",
+          "number": "282",
+          "originalNumber": "5Н-107",
+          "state": {
+            "code": "Действует",
+            "name": "Действует",
+            "date": "2019-02-13"
+          },
+          "creationDate": "2019-02-13",
+          "operDate": "2019-02-13",
+          "startDate": "2019-02-13",
+          "endDate": "2023-05-15",
+          "heirs": [
+            {
+              "successor": {
+                "systemId": "DRTM",
+                "rawId": "179429021",
+                "fullName": "ЗОТОВА МАРИНА СЕРГЕЕВНА"
+              },
+              "nominator": "1",
+              "denominator": "2",
+              "amount": 146682.78
+            }
+          ]
+        },
+        {
+          "id": "100000801143",
+          "kind": "Завещательное распоряжение внешнее",
+          "number": "283",
+          "originalNumber": "5Н-108",
+          "state": {
+            "code": "Действует",
+            "name": "Действует",
+            "date": "2019-02-13"
+          },
+          "creationDate": "2019-02-13",
+          "operDate": "2019-02-13",
+          "startDate": "2019-02-13",
+          "endDate": "2023-05-15",
+          "heirs": [
+            {
+              "successor": {
+                "systemId": "DRTM",
+                "rawId": "179429023",
+                "fullName": "ЗОТОВА АНГЕЛИНА ВЛАДИМИРОВНА"
+              },
+              "nominator": "1",
+              "denominator": "2",
+              "amount": 146682.78
+            }
+          ]
+        }
+      ]
+    },
+    "status": "success"
+  }

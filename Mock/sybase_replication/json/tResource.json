@@ -1,0 +1,12 @@
+{
+    "Tablename":"tResource",
+    "InsertDeleteCount":2498,
+    "UpdateCount":838,
+    "Insert":"insert into tResource (Brief,DateEnd,SecurityID) values(\"test resource\",'2019-07-07 12:24:34.123456',2)",
+    "Update":[
+        {
+            "Str":"update tResource set Brief=\"test_Brief_update\" where ResourceID = ?"
+            }
+    ],
+    "Delete":"delete tResource where ResourceID = ?" 
+}

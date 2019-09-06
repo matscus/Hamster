@@ -1,0 +1,68 @@
+{
+    "data": {
+      "prolongations": [
+        {
+          "number": "PROL-354642-112",
+          "startDate": "2014-01-08",
+          "endDate": "2015-01-08",
+          "value": {
+            "amount": "500000.64",
+            "currency": {
+              "numCode": "810",
+              "charCode": "RUB"
+            }
+          },
+          "rates": [
+            {
+              "type": "percentsRate ",
+              "value": "12.50"
+            },
+            {
+              "type": "percentsRate ",
+              "value": "23.00"
+            },
+            {
+              "type": "percentsRate ",
+              "value": "1"
+            }
+          ],
+          "isTopup": true,
+          "isWithdrawal": true
+        },
+        {
+          "number": "PROL-554642-114",
+          "startDate": "2015-01-09",
+          "endDate": "2015-01-10",
+          "value": {
+            "amount": "1000",
+            "currency": {
+              "numCode": "985",
+              "charCode": "PLN"
+            }
+          },
+          "rates": [
+            {
+              "type": "percentsRate ",
+              "value": "23.00"
+            }
+          ],
+          "isTopup": false,
+          "isWithdrawal": true
+        },
+        {
+          "number": "PROL-754642-116",
+          "startDate": "2015-01-11",
+          "value": {
+            "amount": "3100",
+            "currency": {
+              "numCode": "810",
+              "charCode": "RUB"
+            }
+          },
+          "isTopup": false,
+          "isWithdrawal": false
+        }
+      ]
+    },
+    "status": "success"
+  }

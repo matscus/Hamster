@@ -1,0 +1,15 @@
+{
+    "Tablename":"tContractCredit",
+    "InsertDeleteCount":41400,
+    "UpdateCount":33800,
+    "Insert":"insert into tContractCredit(MainContractID,ResourceID)values(1,15) ", 
+    "Update":[
+            {
+                "Str":"update tContractCredit set MainContractID=1 where ContractCreditID = ?"
+            },
+            {
+                "Str":"update tContractCredit set ResourceID=1 where ContractCreditID = ?"
+            }
+    ],
+    "Delete":"delete tContractCredit where ContractCreditID = ?" 
+}

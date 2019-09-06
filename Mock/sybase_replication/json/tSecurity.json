@@ -1,0 +1,15 @@
+{
+    "Tablename":"tContract",
+    "InsertDeleteCount":0,
+    "UpdateCount":0,
+    "Insert":"insert into tSecurity (Number,Brief) values(\"148814\",\"test values\")",
+    "Update":[
+            {
+            "Str":"update tSecurity set Number=\"7574635353\" where SecurityID = ?"
+            },
+            {
+                "Str":"update tSecurity set Brief=\"56564645353\" where SecurityID = ?"
+            }
+    ],
+    "Delete":"delete tSecurity where SecurityID = ?" 
+}

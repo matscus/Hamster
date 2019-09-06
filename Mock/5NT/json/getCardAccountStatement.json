@@ -1,0 +1,76 @@
+{
+    "data": {
+      "operationsHistory": {
+        "actualDate": "2019-03-29",
+        "startDate": "2018-08-21",
+        "endDate": "",
+        "incomingSaldo": null,
+        "outcomingSaldo": null,
+        "systemInfo": {
+          "systemId": "DRTC",
+          "rawId": "10017270640"
+        },
+        "pan": "1248852145609638",
+        "accNumber": "40817810800601482281",
+        "operations": [
+          {
+            "transDate": "2019-02-15T00:00:00",
+            "amount": 48963,
+            "transType": "Списано, зачислено по банковскому ордеру",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-02-19T00:00:00",
+            "amount": 160,
+            "transType": "Списано, зачислено по мемориальному ордеру, а также",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-02-28T00:00:00",
+            "amount": 45000,
+            "transType": "Списано, зачислено по мемориальному ордеру, а также",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-03-02T00:00:00",
+            "amount": 199.9,
+            "transType": "Списано, зачислено по мемориальному ордеру, а также",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-03-15T00:00:00",
+            "amount": 79325.15,
+            "transType": "Списано, зачислено по банковскому ордеру",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-03-19T00:00:00",
+            "amount": 4000,
+            "transType": "Списано, зачислено по мемориальному ордеру, а также",
+            "state": {
+              "name": "process"
+            }
+          },
+          {
+            "transDate": "2019-03-30T00:00:00",
+            "amount": 75000,
+            "transType": "Списано, зачислено по мемориальному ордеру, а также",
+            "state": {
+              "name": "process"
+            }
+          }
+        ]
+      }
+    },
+    "status": "success"
+  }

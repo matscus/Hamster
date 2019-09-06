@@ -1,0 +1,15 @@
+{
+    "Tablename":"tCardProduct",
+    "InsertDeleteCount":0,
+    "UpdateCount":0,
+    "Insert":"insert into tCardProduct(Brief,Name)values(\"The Best Product\",\"Best\") ",
+    "Update":[
+            {
+                "Str":"update tCardProduct set Name=\"TheBest\" where CardProductID = ?"
+            },
+            {
+                "Str":"update tCardProduct set Brief=\"TheBestinTheBest\" where CardProductID = ?"
+            }
+    ],
+    "Delete":"delete tCardProduct where CardProductID = ?" 
+}

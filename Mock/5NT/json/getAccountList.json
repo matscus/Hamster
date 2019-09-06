@@ -1,0 +1,114 @@
+{
+    "data": {
+      "contracts": [
+        {
+          "base": {
+            "clientRequest": {
+              "systemId": "DRTM",
+              "rawId": "account_client_32177"
+            },
+            "systemInfo": {
+              "systemId": "DRTM",
+              "rawId": "account_32177"
+            },
+            "owner": {
+              "systemId": "DRTM",
+              "rawId": "account_owner_32177",
+              "fullName": "Крендель Иннокентий Карлович"
+            },
+            "number": "321673333777",
+            "product": {
+              "code": "12345_1",
+              "name": "Счет_1",
+              "type": 12345
+            },
+            "creationDate": "2011-11-11",
+            "startDate": "2011-11-12",
+            "closeDatePlan": "2012-11-13",
+            "closeDateFact": "2012-11-13",
+            "state": {
+              "code": "finished",
+              "name": "Завершен",
+              "date": "2012-11-13"
+            },
+            "isWorking": false,
+            "bank": {
+              "bic": "45454545454",
+              "fullName": "Гпб",
+              "shortName": "б",
+              "corrAcc": "123445663222234567899",
+              "departments": [
+                {
+                  "fullName": "Отделение 123",
+                  "address": {
+                    "fullAddress": "Полный адрес отделения 123"
+                  }
+                }
+              ]
+            },
+            "employeeFullName": "Агент Джон Смит"
+          },
+          "account": {
+            "base": {
+              "systemInfo": {
+                "systemId": "DRTM",
+                "rawId": "account1_3216777"
+              },
+              "number": "407028400001233217777",
+              "bank": {
+                "bic": "40758268"
+              },
+              "currency": {
+                "numCode": "840",
+                "charCode": "USD"
+              },
+              "type": "depositAccount",
+              "state": {
+                "code": "01",
+                "name": "открыт",
+                "date": "2019-01-25"
+              },
+              "balance": [
+                {
+                  "type": "maxWithdrawalAmount",
+                  "value": {
+                    "amount": "15000.50",
+                    "currency": {
+                      "numCode": "840",
+                      "charCode": "USD"
+                    }
+                  }
+                },
+                {
+                  "type": "mainAmount",
+                  "value": {
+                    "amount": "25000.50",
+                    "currency": {
+                      "numCode": "840",
+                      "charCode": "USD"
+                    }
+                  }
+                }
+              ],
+              "isArrest": "false",
+              "topup": {
+                "isPosibility": "true",
+                "maxAmount": "2500000.50",
+                "minAmount": "250.50",
+                "startDate": "2019-01-01",
+                "endDate": "2023-01-01"
+              },
+              "withdrawal": {
+                "isPosibility": "true",
+                "maxAmount": "2500000.50",
+                "minAmount": "250.50",
+                "startDate": "2019-01-01",
+                "endDate": "2023-01-01"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "status": "success"
+  }
