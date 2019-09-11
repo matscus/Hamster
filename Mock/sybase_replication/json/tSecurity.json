@@ -1,7 +1,5 @@
 {
-    "Tablename":"tContract",
-    "InsertDeleteCount":0,
-    "UpdateCount":0,
+    "Tablename":"tSecurity",
     "Insert":"insert into tSecurity (Number,Brief) values(\"148814\",\"test values\")",
     "Update":[
             {

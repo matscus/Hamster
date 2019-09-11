@@ -19,7 +19,7 @@ var (
 	scenario  string
 	Config    config
 	endCh     chan bool
-	methodMap sync.Map 
+	methodMap sync.Map
 )
 
 type config struct {

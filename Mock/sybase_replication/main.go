@@ -1,51 +1,47 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 	"os"
-	"runtime/trace"
 	"sync"
 	"time"
 
-	"github.com/pkg/profile"
-
-	"./datapool"
+	"github.com/matscus/Hamster/Mock/sybase_replication/datapool"
+	//"./datapool"
 )
 
 var (
 	duration int
 )
 
-func init() {
-	datapool.ReadJSON()
-}
 func main() {
-	defer profile.Start(profile.MemProfile).Stop()
-	f, err := os.Create("trace.out")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	err = trace.Start(f)
-	if err != nil {
-		panic(err)
-	}
-	defer trace.Stop()
-	flag.IntVar(&duration, "duration ", 10, "duration work")
+	// defer profile.Start(profile.MemProfile).Stop()
+	// f, err := os.Create("trace.out")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer f.Close()
+	// err = trace.Start(f)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer trace.Stop()
+	log.Printf("[INFO] mock sybase replication is start")
+	flag.IntVar(&duration, "duration ", 5, "duration work")
 	flag.Parse()
-	l := len(datapool.Datapool)
 	var wg sync.WaitGroup
+	l := len(datapool.Cnfg)
 	for i := 0; i < l; i++ {
+		val, _ := datapool.ConnectionPool.Load(datapool.Cnfg[i].Host)
+		c := make(chan datapool.TypeOrSTR, 1000)
 		wg.Add(1)
-		if datapool.Datapool[i].InsertDeleteCount == 0 {
-			log.Printf("Values insert and delete equally 0, delete operation %s excluded from startup script", datapool.Datapool[i].Tablename)
-		} else {
-			go datapool.Datapool[i].Run(convertDuration(duration), &wg)
-		}
-
+		inctance := datapool.Instance{datapool.Cnfg[i].Host, val.(*sql.DB), convertDuration(duration), c, datapool.JsonPool}
+		go inctance.RunInstance(&wg)
 	}
 	wg.Wait()
+	log.Printf("[INFO] mock sybase replication is complite")
 	os.Exit(0)
 }
 

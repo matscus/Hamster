@@ -1,7 +1,5 @@
 {
     "Tablename":"tCardProduct",
-    "InsertDeleteCount":0,
-    "UpdateCount":0,
     "Insert":"insert into tCardProduct(Brief,Name)values(\"The Best Product\",\"Best\") ",
     "Update":[
             {

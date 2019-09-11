@@ -1,7 +1,5 @@
 {
     "Tablename":"tInstitution",
-    "InsertDeleteCount":84,
-    "UpdateCount":442,
     "Insert":"insert into tInstitution (Name,Name1,Name2,BIC,AccRcv,Brief,BranchID) values(\"test name\",\"test name2\",\"test name3\",\"test bic\",\"test\",\"test\",1488)",
     "Update":[
             {

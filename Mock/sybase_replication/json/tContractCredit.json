@@ -1,7 +1,5 @@
 {
     "Tablename":"tContractCredit",
-    "InsertDeleteCount":41400,
-    "UpdateCount":33800,
     "Insert":"insert into tContractCredit(MainContractID,ResourceID)values(1,15) ", 
     "Update":[
             {

@@ -1,7 +1,5 @@
 {
     "Tablename":"tNode",
-    "InsertDeleteCount":1,
-    "UpdateCount":62,
     "Insert":"insert into tNode (Name) values(\"test node\")",
     "Update":[
         {

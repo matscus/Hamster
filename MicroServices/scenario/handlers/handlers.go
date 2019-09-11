@@ -211,27 +211,3 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"Message\":\" params hot found \"}"))
 	}
 }
-
-//NewOrUpdateGenerator - new or update generator func(new - method post, update - method put)
-// func NewOrUpdateGenerator(w http.ResponseWriter, r *http.Request) {
-// 	g := generators.Generator{}
-// 	err := json.NewEncoder(w).Encode(g)
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-// 	}
-// 	switch r.Method {
-// 	case "POST":
-// 		err = g.InsertToDB()
-// 		if err != nil {
-// 			w.WriteHeader(http.StatusInternalServerError)
-// 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-// 		}
-// 	case "PUT":
-// 		err = g.UpdateGenerator()
-// 		if err != nil {
-// 			w.WriteHeader(http.StatusInternalServerError)
-// 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-// 		}
-// 	}
-// }
