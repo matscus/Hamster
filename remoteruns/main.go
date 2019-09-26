@@ -19,6 +19,9 @@ type RemoteAddr []struct {
 func main() {
 	flag.StringVar(&str, "str ", "", "string for run to remote host")
 	flag.Parse()
+	if str == "" {
+		log.Panic("[ERROR] %s", "param str in nil")
+	}
 	file, err := os.Open("config.json")
 	if err != nil {
 		log.Printf("[ERROR] %s", err)
