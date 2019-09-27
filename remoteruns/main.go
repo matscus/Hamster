@@ -97,16 +97,16 @@ func start(host string, scriptname string, wg *sync.WaitGroup) {
 	}
 	defer session.Close()
 	//session.Start("nohup " + os.Getenv("PROMETHEUSDIR") + "./prometheus --web.listen-address=" + os.Getenv("PROMETHEUSPORT") + " --config.file=" + os.Getenv("PROMETHEUSDIR") + "prometheus.yml &> /dev/null")
-	filePath := "~/scripts_jmeter/" + scriptname + ".jmx"
-	destinationPath := "~/scripts_jmeter/" + scriptname + ".jmx"
+	filePath := os.Getenv("HOME") + "/scripts_jmeter/" + scriptname + ".jmx"
+	destinationPath := os.Getenv("HOME") + "/scripts_jmeter/" + scriptname + ".jmx"
 	if err != nil {
 		log.Printf("[ERROR] %s", err)
 	}
 	err = scp.CopyPath(filePath, destinationPath, session)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+		log.Printf("[ERROR] copy %s", err)
 	}
-	str := "nohup ~/apache-jmeter-4.0/bin/jmeter -n -t ~/scripts_jmeter/" + scriptname + ".jmx &> /dev/null"
+	str := "nohup " + os.Getenv("HOME") + "/apache-jmeter-4.0/bin/jmeter -n -t " + os.Getenv("HOME") + "/scripts_jmeter/" + scriptname + ".jmx &> /dev/null"
 	log.Printf("[INFO] Str for run %s", str)
 	err = session.Start(str)
 	if err != nil {
@@ -121,7 +121,7 @@ func stop(host string, wg *sync.WaitGroup) {
 		log.Printf("[ERROR] %s", err)
 	}
 	defer session.Close()
-	err = session.Start("~/apache-jmeter-4.0/bin/./shutdown.sh")
+	err = session.Start(os.Getenv("HOME") + "/apache-jmeter-4.0/bin/./shutdown.sh")
 	if err != nil {
 		log.Printf("[ERROR] %s", err)
 	}
