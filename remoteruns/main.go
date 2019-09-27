@@ -48,7 +48,7 @@ func main() {
 	switch action {
 	case "start":
 		if scriptName == "" {
-			log.Panic("[ERROR] %s", "param str is nil")
+			log.Panicf("[ERROR] %s", "param str is nil")
 		}
 		file, err := os.Open("config.json")
 		if err != nil {
@@ -96,6 +96,7 @@ func start(host string, scriptname string, wg *sync.WaitGroup) {
 		log.Printf("[ERROR] %s", err)
 	}
 	defer session.Close()
+	//session.Start("nohup " + os.Getenv("PROMETHEUSDIR") + "./prometheus --web.listen-address=" + os.Getenv("PROMETHEUSPORT") + " --config.file=" + os.Getenv("PROMETHEUSDIR") + "prometheus.yml &> /dev/null")
 	filePath := "~/scripts_jmeter/" + scriptname + ".jmx"
 	destinationPath := "~/scripts_jmeter/" + scriptname + ".jmx"
 	if err != nil {
