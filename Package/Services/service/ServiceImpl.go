@@ -80,7 +80,11 @@ func (s *Service) InstallServiceToRemoteHost() (err error) {
 	if err != nil {
 		return err
 	}
-	return pgclient.NewService(id, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+	err = pgclient.NewService(id, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //DeleteServiceToRemoteHost - install new service from remote host

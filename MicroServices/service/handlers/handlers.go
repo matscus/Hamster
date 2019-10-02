@@ -136,7 +136,7 @@ func UpdateServiceHandle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//NewServiceHandle -  install service to remote host - compress dir of service? use implement scp to copy
+//NewServiceHandle -  install service to remote host - compress dir of service, use implement scp to copy
 //files to remote host and uncompress. SERVICE NOT RUN AFTER INSTALL
 func NewServiceHandle(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -238,14 +238,17 @@ func NewFile(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	}
 	defer file.Close()
-	f, err := os.OpenFile(os.Getenv("BINSDIR")+servicetype+"/"+handler.Filename, os.O_CREATE|os.O_RDWR, os.FileMode(0777))
+	f, err := os.OpenFile(os.Getenv("BINSDIR")+servicetype+"/"+handler.Filename, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	}
 	defer f.Close()
-	io.Copy(f, file)
-
+	_, err = io.Copy(f, file)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+	}
 }
 
 //File - func to download and delete file from bins dir

@@ -211,3 +211,13 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"Message\":\" params hot found \"}"))
 	}
 }
+
+//UploadScenario - func for upload scenario from scenario directory
+func UploadScenario(w http.ResponseWriter, r *http.Request) {
+
+}
+
+//DownloadScenario - func for dpwnload scenario
+func DownloadScenario(w http.ResponseWriter, r *http.Request) {
+
+}
