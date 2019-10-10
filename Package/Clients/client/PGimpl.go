@@ -123,15 +123,47 @@ func (c PGClient) SetStopTest(runID string) error {
 }
 
 //NewScenario - insert new scenario values to table  scenarios
-func (c PGClient) NewScenario(id int64, name string, typeTest string, gun string, projects []string) (err error) {
+func (c PGClient) NewScenario(name string, typeTest string, gun string, projects []string) (err error) {
 	t := time.Now().Unix()
 	projectstr := "{" + strings.Join(projects, ",") + "}"
 	timestamp := strconv.FormatInt(t, 10)
-	_, err = db.Exec("INSERT INTO scenarios (id,name,test_type,last_modified,gun_type,projects) VALUES ($1,$2,$3,to_timestamp($4),$5,$6)", id, name, typeTest, timestamp, gun, projectstr)
+	_, err = db.Exec("INSERT INTO scenarios (name,test_type,last_modified,gun_type,projects) VALUES ($1,$2,to_timestamp($3),$4,$5)", name, typeTest, timestamp, gun, projectstr)
 	if err != nil {
 		return err
 	}
 	return err
+}
+
+//GetScenarioName - insert new scenario values to table  scenarios
+func (c PGClient) GetScenarioName(id int64) (res string, err error) {
+	if err := db.QueryRow("select name from scenarios where id=$1", id).Scan(&res); err != nil {
+		return res, err
+	}
+	return res, err
+}
+
+//CheckScenario - Check scenario, if exist return true, if not exist return fasle
+func (c PGClient) CheckScenario(name string, gun string, projects []string) (res bool, err error) {
+	var tempname string
+	projectstr := "{" + strings.Join(projects, ",") + "}"
+	err = db.QueryRow("select name from  scenarios where name=$1 and gun_type=$2 and projects=$3", name, gun, projectstr).Scan(&tempname)
+	if err != nil {
+		return false, err
+	}
+	if tempname == "" {
+		return false, err
+	} else {
+		return true, err
+	}
+}
+
+//DeleteScenario - delete scenario from db
+func (c PGClient) DeleteScenario(id int64) (err error) {
+	_, err = db.Exec("delete from scenarios where id=$1", id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //NewService - insert new scenario values to table  scenarios

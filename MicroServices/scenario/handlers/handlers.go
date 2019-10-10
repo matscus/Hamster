@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,6 +16,21 @@ import (
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
 )
+
+func MiddlewareFiles(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Keep-Alive", "300")
+		w.Header().Add("Content-Disposition", "attachment")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Methods", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "*")
+		w.Header().Add("Access-Control-Max-Age", "600")
+		w.Header().Add("Access-Control-Allow-Credentials", "true")
+		w.Header().Add("Strict-Transport-Security", "max-age=31536000")
+		w.Header().Add("X-Frame-Options", "SAMEORIGIN")
+		h.ServeHTTP(w, r)
+	}
+}
 
 //Ws - handler for websocket, send status of scenario to client
 func Ws(w http.ResponseWriter, r *http.Request) {
@@ -87,43 +105,129 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 
 //UpdateData - handle for update scenario values to table
 func UpdateData(w http.ResponseWriter, r *http.Request) {
-	var s scenario.Scenario
-	var err error
-	err = json.NewDecoder(r.Body).Decode(&s)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-	} else {
-		err = s.Update()
+	switch r.Method {
+	case "PUT":
+		var s scenario.Scenario
+		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("{\"Message\":\"update done\"}"))
-			scn.InitData()
+			s.ID = id
+			s.Name = r.FormValue("scenarioName")
+			s.Type = r.FormValue("scenarioType")
+			s.Gun = r.FormValue("gun")
+			s.Projects = []string{r.FormValue("project")}
+			ifExist, _ := s.CheckScenario()
+			if ifExist {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"dublicate scenario name in the project\"}"))
+			} else {
+				oldname, err := s.GetNameForID()
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip")
+					r.ParseMultipartForm(32 << 20)
+					file, _, _ := r.FormFile("uploadFile")
+					if file == nil {
+						s.Update()
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte("{\"Message\":\"update done\"}"))
+						scn.InitData()
+					} else {
+						defer file.Close()
+						f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+						}
+						defer f.Close()
+						_, err = io.Copy(f, file)
+						if err != nil {
+							err = s.Update()
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+						} else {
+							err = s.Update()
+							if err != nil {
+								w.WriteHeader(http.StatusInternalServerError)
+								w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+							} else {
+								w.WriteHeader(http.StatusOK)
+								w.Write([]byte("{\"Message\":\"update done\"}"))
+								scn.InitData()
+							}
+						}
+					}
+				}
+			}
+		}
+	case "DELETE":
+		var s scenario.Scenario
+		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		} else {
+			s.ID = id
+			s.Name = r.FormValue("scenarioName")
+			s.Type = r.FormValue("scenarioType")
+			s.Gun = r.FormValue("gun")
+			s.Projects = []string{r.FormValue("project")}
+			os.Remove(os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip")
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			} else {
+				s.DeleteScenario()
+				scn.InitData()
+			}
 		}
 	}
-
 }
 
 //NewScenario - handle to insert new scenario to table
 func NewScenario(w http.ResponseWriter, r *http.Request) {
 	var s scenario.Scenario
-	var err error
-	err = json.NewDecoder(r.Body).Decode(&s)
-	if err != nil {
+	s.Name = r.FormValue("scenarioName")
+	s.Type = r.FormValue("scenarioType")
+	s.Gun = r.FormValue("gun")
+	s.Projects = []string{r.FormValue("project")}
+	r.ParseMultipartForm(32 << 20)
+	ifExist, _ := s.CheckScenario()
+	if ifExist {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		w.Write([]byte("{\"Message\":\"dublicate scenario name in the project\"}"))
 	} else {
-		err = s.InsertToDB()
+		file, _, err := r.FormFile("uploadFile")
+		defer file.Close()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("{\"Message\":\"update done\"}"))
-			scn.InitData()
+			f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			}
+			defer f.Close()
+			_, err = io.Copy(f, file)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			} else {
+				err = s.InsertToDB()
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("{\"Message\":\"update done\"}"))
+					scn.InitData()
+				}
+			}
 		}
 	}
 }
@@ -210,14 +314,4 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\" params hot found \"}"))
 	}
-}
-
-//UploadScenario - func for upload scenario from scenario directory
-func UploadScenario(w http.ResponseWriter, r *http.Request) {
-
-}
-
-//DownloadScenario - func for dpwnload scenario
-func DownloadScenario(w http.ResponseWriter, r *http.Request) {
-
 }

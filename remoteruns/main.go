@@ -147,27 +147,21 @@ func copyPath(filePath, destinationPath string, session *ssh.Session) error {
 func copy(size int64, mode os.FileMode, fileName string, contents io.Reader, destination string, session *ssh.Session) error {
 	defer session.Close()
 	w, err := session.StdinPipe()
-
 	if err != nil {
 		return err
 	}
-
 	cmd := shellquote.Join("scp", "-t", destination)
 	if err := session.Start(cmd); err != nil {
 		w.Close()
 		return err
 	}
-
 	errors := make(chan error)
-
 	go func() {
 		errors <- session.Wait()
 	}()
-
 	fmt.Fprintf(w, "C%#o %d %s\n", mode, size, fileName)
 	io.Copy(w, contents)
 	fmt.Fprint(w, "\x00")
 	w.Close()
-
 	return <-errors
 }

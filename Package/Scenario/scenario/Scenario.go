@@ -22,10 +22,35 @@ func (s *Scenario) Update() (err error) {
 //InsertToDB - func for insert new scenario values in table
 func (s *Scenario) InsertToDB() (err error) {
 	pgclient := client.PGClient{}.New()
-	id, err := pgclient.GetLastScenarioID()
+	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects)
+	return err
+}
+
+//GetNameForID - func for insert new scenario values in table
+func (s *Scenario) GetNameForID() (res string, err error) {
+	pgclient := client.PGClient{}.New()
+	res, err = pgclient.GetScenarioName(s.ID)
+	if err != nil {
+		return "", err
+	}
+	return res, err
+}
+
+//DeleteScenario - func for delete secenario(rows db and files)
+func (s *Scenario) DeleteScenario() (err error) {
+	pgclient := client.PGClient{}.New()
+	err = pgclient.DeleteScenario(s.ID)
 	if err != nil {
 		return err
 	}
-	err = pgclient.NewScenario(id, s.Name, s.Type, s.Gun, s.Projects)
-	return err
+	return nil
+}
+
+//CheckScenario - func for delete secenario(rows db and files)
+func (s *Scenario) CheckScenario() (res bool, err error) {
+	res, err = client.PGClient{}.New().CheckScenario(s.Name, s.Gun, s.Projects)
+	if err != nil {
+		return res, err
+	}
+	return res, nil
 }
