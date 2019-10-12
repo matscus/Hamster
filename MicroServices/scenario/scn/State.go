@@ -1,6 +1,8 @@
 package scn
 
 import (
+	"encoding/json"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -51,6 +53,16 @@ func InitData() (err error) {
 		s.LastModified = t.LastModified
 		s.Gun = t.Gun
 		s.Projects = t.Projects
+		l := len(t.TreadGroupsParams)
+		for i := 0; i < l; i++ {
+			var tgp scenario.TreadGroupsParams
+			str := t.TreadGroupsParams[i]
+			err := json.Unmarshal([]byte(str), &tgp)
+			if err != nil {
+				log.Println(err)
+			}
+			s.TreadGroupsParams = append(s.TreadGroupsParams, tgp)
+		}
 		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, s)
 	}
 	gen, err := pgclient.GetAllGenerators()
