@@ -12,6 +12,7 @@ type PGClient interface {
 	SetStartTest(runID string, testName string, testType string) error
 	SetStopTest(runID string) error
 	GetAllScenarios() (*[]AllScenario, error)
+	GetUsersAndHosts() (map[string]string, error)
 	NewScenario(name string, typeTest string, gun string, projects []string, params []string) (err error)
 	CheckScenario(name string, gun string, projects []string) (res bool, err error)
 	GetScenarioName(id int64) (res string, err error)

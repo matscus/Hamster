@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -67,7 +66,8 @@ func StartSeviceHandle(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			}
 			service.RunSTR = str
-			err = service.Run()
+			user, _ := serv.HostsAndUsers.Load(service.Host)
+			err = service.Run(user.(string))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -80,8 +80,8 @@ func StartSeviceHandle(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"service start\"}"))
 			}
 		} else {
-			fmt.Println("two ", service.RunSTR)
-			err = service.Run()
+			user, _ := serv.HostsAndUsers.Load(service.Host)
+			err = service.Run(user.(string))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -106,7 +106,8 @@ func StopServiceHandle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
-		err = service.Stop()
+		user, _ := serv.HostsAndUsers.Load(service.Host)
+		err = service.Stop(user.(string))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -147,7 +148,8 @@ func NewServiceHandle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	}
-	err = service.InstallServiceToRemoteHost()
+	user, _ := serv.HostsAndUsers.Load(service.Host)
+	err = service.InstallServiceToRemoteHost(user.(string))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -168,12 +170,13 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	}
-	err = service.Stop()
+	user, _ := serv.HostsAndUsers.Load(service.Host)
+	err = service.Stop(user.(string))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	}
-	err = service.DeleteServiceToRemoteHost()
+	err = service.DeleteServiceToRemoteHost(user.(string))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))

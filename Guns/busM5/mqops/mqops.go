@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"../asserts"
-	"../errors"
+	"github.com/matscus/Hamster/Guns/busM5/asserts"
+	"github.com/matscus/Hamster/Guns/busM5/errors"
 
 	"github.com/matscus/mq-golang-jms20/jms20subset"
 	"github.com/matscus/mq-golang-jms20/mqjms"

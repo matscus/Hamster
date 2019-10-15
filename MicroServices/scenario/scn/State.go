@@ -21,6 +21,8 @@ var (
 	LastRunsParams sync.Map
 	//RunsGenerators - sync map for used generator
 	RunsGenerators sync.Map
+	//HostsAndUsers - sync map users from remote host
+	HostsAndUsers sync.Map
 )
 
 //GetResponse -  struct for response
@@ -59,7 +61,7 @@ func InitData() (err error) {
 			str := t.TreadGroupsParams[i]
 			err := json.Unmarshal([]byte(str), &tgp)
 			if err != nil {
-				log.Println(err)
+				log.Println("Unmarshal params error: ", err)
 			}
 			s.TreadGroupsParams = append(s.TreadGroupsParams, tgp)
 		}
@@ -84,6 +86,10 @@ func InitData() (err error) {
 			g.State = "Free"
 		}
 		GetResponseAllData.Generators = append(GetResponseAllData.Generators, g)
+	}
+	hostsAndUsers, err := pgclient.GetUsersAndHosts()
+	for k, v := range hostsAndUsers {
+		HostsAndUsers.Store(k, v)
 	}
 	return nil
 }
@@ -131,13 +137,15 @@ func СheckRun() (res bool) {
 
 //CheckGen - func fo check state generators
 func CheckGen(g []generators.Generator) (res []GeneratorState, err error) {
-	client, err := client.SSHClient{}.New()
-	if err != nil {
-		return res, err
-	}
+
 	l := len(g)
 	for i := 0; i < l; i++ {
-		_, err := client.Ping(g[i].Host)
+		user, _ := HostsAndUsers.Load(g[i].Host)
+		client, err := client.SSHClient{}.New(user.(string))
+		if err != nil {
+			return res, err
+		}
+		_, err = client.Ping(g[i].Host)
 		if err != nil {
 			var genstate GeneratorState
 			genstate.Host = g[i].Host

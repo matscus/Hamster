@@ -18,6 +18,7 @@ var (
 	selectAllGenerators = "select id, host from generators"
 	selectServiceRunSTR = "select runstr from service where id=$1"
 	deleteService       = "delete service where id=$1"
+	selectUserForHosts  = "select ip,users from hosts"
 	//selectProjectService = "select id,name,host,uri,type,projects from service where '{$1}' <@ projects"
 	db *sql.DB
 )
@@ -314,4 +315,21 @@ func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, erro
 		res = append(res, t)
 	}
 	return &res, err
+}
+
+//GetUsersAndHosts - func return ipp host and user for him
+func (c PGClient) GetUsersAndHosts() (map[string]string, error) {
+	res := make(map[string]string)
+	var ip, users string
+	rows, err := db.Query(selectUserForHosts)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&ip, &users); err != nil {
+			return nil, err
+		}
+		res[ip] = users
+	}
+	return res, nil
 }

@@ -8,9 +8,9 @@ import (
 
 	"github.com/matscus/Hamster/Package/Clients/client"
 
-	"./asserts"
-	"./mqops"
-	"./pool"
+	"github.com/matscus/Hamster/Guns/busM5/asserts"
+	"github.com/matscus/Hamster/Guns/busM5/mqops"
+	"github.com/matscus/Hamster/Guns/busM5/pool"
 )
 
 var (

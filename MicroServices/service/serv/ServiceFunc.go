@@ -1,8 +1,10 @@
 package serv
 
 import (
+	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
@@ -12,7 +14,20 @@ import (
 var (
 	//GetResponceAllData - slice services
 	GetResponseAllData []service.Service
+	//HostsAndUsers - sync map users from remote host
+	HostsAndUsers sync.Map
 )
+
+func init() {
+	pgclient := client.PGClient{}.New()
+	hostsAndUsers, err := pgclient.GetUsersAndHosts()
+	if err != nil {
+		log.Println("[ERR] Error get users and hosts: ", err)
+	}
+	for k, v := range hostsAndUsers {
+		HostsAndUsers.Store(k, v)
+	}
+}
 
 //InitGetResponseAllData - function to obtain information about all services from the database. all services are append to slice Services
 func InitGetResponseAllData() error {

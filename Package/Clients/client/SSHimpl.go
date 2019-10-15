@@ -24,7 +24,7 @@ type SSHClient struct {
 }
 
 //New - return nuw ssh client interface
-func (c SSHClient) New() (subset.SSHClient, error) {
+func (c SSHClient) New(userName string) (subset.SSHClient, error) {
 	var client subset.SSHClient
 	var err error
 	key, err := ioutil.ReadFile(os.Getenv("RSAPATH"))
@@ -37,7 +37,7 @@ func (c SSHClient) New() (subset.SSHClient, error) {
 	}
 	client = SSHClient{
 		SHHConfig: &ssh.ClientConfig{
-			User: os.Getenv("SSHUSER"),
+			User: userName,
 			Auth: []ssh.AuthMethod{
 				ssh.PublicKeys(signer),
 			},

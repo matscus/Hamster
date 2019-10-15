@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"../errors"
+	"github.com/matscus/Hamster/Guns/busM5/errors"
 	"github.com/matscus/Hamster/Package/Datapool/pools"
 	"github.com/matscus/Hamster/Package/Datapool/structs"
 )

@@ -37,7 +37,7 @@ type JmeterTestPlan struct {
 				OnceOnlyController OnceOnlyController `xml:"OnceOnlyController"`
 				TestAction         TestAction         `xml:"TestAction"`
 			} `xml:"hashTree"`
-			Arguments                                                   Arguments                                                     `xml:"Arguments"`
+			Arguments                                                   []Arguments                                                   `xml:"Arguments"`
 			ResultCollector                                             ResultCollector                                               `xml:"ResultCollector"`
 			SetupThreadGroup                                            SetupThreadGroup                                              `xml:"SetupThreadGroup"`
 			ThreadGroup                                                 []ThreadGroup                                                 `xml:"ThreadGroup"`

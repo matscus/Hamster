@@ -2,9 +2,11 @@ package jmxparser
 
 type JMXParserResponse struct {
 	TreadGroupName   string
+	TGType           string
 	TreadGroupParams []TreadGroupParams
 }
 type TreadGroupParams struct {
-	Name   string
-	Values string
+	ParamType string
+	Name      string
+	Values    string
 }

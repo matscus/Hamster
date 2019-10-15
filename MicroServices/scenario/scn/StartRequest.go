@@ -58,7 +58,6 @@ func (s *StartRequest) Start() error {
 				}
 				go StartScenario(runid, s.Generators[i].Host, str)
 			}
-
 		}
 	case "jmeter":
 		for i := 0; i < gencount; i++ {

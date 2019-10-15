@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"time"
 
@@ -207,7 +208,8 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		} else {
-			f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+			newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
+			f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -218,6 +220,11 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
+				tempDir := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/+temp"
+				os.Mkdir(tempDir, os.FileMode(0755))
+				cmd := exec.Command("unzip", newFile, "-d", tempDir)
+				cmd.Run()
+
 				err = s.InsertToDB()
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)

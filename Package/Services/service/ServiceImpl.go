@@ -22,8 +22,8 @@ type Service struct {
 }
 
 //Run  - service run function. performs connection to the host via ssh.
-func (s *Service) Run() error {
-	client, err := client.SSHClient{}.New()
+func (s *Service) Run(user string) error {
+	client, err := client.SSHClient{}.New(user)
 	if err != nil {
 		return err
 	}
@@ -33,8 +33,8 @@ func (s *Service) Run() error {
 
 //Stop  - service stop function. performs connection to the host via ssh.
 //executes command pkill for service
-func (s *Service) Stop() error {
-	client, err := client.SSHClient{}.New()
+func (s *Service) Stop(user string) error {
+	client, err := client.SSHClient{}.New(user)
 	if err != nil {
 		return err
 	}
@@ -66,8 +66,8 @@ func (s *Service) InsertToDB() error {
 }
 
 //InstallServiceToRemoteHost - install new service from remote host
-func (s *Service) InstallServiceToRemoteHost() (err error) {
-	sshclient, err := client.SSHClient{}.New()
+func (s *Service) InstallServiceToRemoteHost(user string) (err error) {
+	sshclient, err := client.SSHClient{}.New(user)
 	if err != nil {
 		return err
 	}
@@ -88,8 +88,8 @@ func (s *Service) InstallServiceToRemoteHost() (err error) {
 }
 
 //DeleteServiceToRemoteHost - install new service from remote host
-func (s *Service) DeleteServiceToRemoteHost() (err error) {
-	sshclient, err := client.SSHClient{}.New()
+func (s *Service) DeleteServiceToRemoteHost(user string) (err error) {
+	sshclient, err := client.SSHClient{}.New(user)
 	if err != nil {
 		return err
 	}

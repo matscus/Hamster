@@ -3,7 +3,7 @@ package mqops
 import (
 	"encoding/json"
 
-	"../errors"
+	"github.com/matscus/Hamster/Guns/busM5/errors"
 )
 
 type getDepositInfoJSON struct {
