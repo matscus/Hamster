@@ -61,7 +61,7 @@ func (s *StartRequest) Start() error {
 				str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
 				for _, v := range s.Params {
 					for _, v1 := range v.TreadGroupParams {
-						if v1.ParamType == "Threads" && v1.ParamType == "TargetLevel" {
+						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
 							u, _ = strconv.ParseFloat(v1.Values, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
@@ -98,7 +98,7 @@ func (s *StartRequest) Start() error {
 				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
 				for _, v := range s.Params {
 					for _, v1 := range v.TreadGroupParams {
-						if v1.ParamType == "Threads" && v1.ParamType == "TargetLevel" {
+						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
 							u, _ = strconv.ParseFloat(v1.Values, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
@@ -121,7 +121,7 @@ func (s *StartRequest) Start() error {
 	var duration int64
 	for _, v := range s.Params {
 		for _, v1 := range v.TreadGroupParams {
-			if v1.ParamType == "Hold" && v1.ParamType == "Duration" {
+			if v1.ParamType == "Hold" || v1.ParamType == "Duration" {
 				d, _ := strconv.Atoi(v1.Values)
 				duration = int64(d)
 			}
