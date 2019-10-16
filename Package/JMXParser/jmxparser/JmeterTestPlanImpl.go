@@ -5,9 +5,9 @@ import (
 )
 
 var (
-	paramsName = map[string]string{"ThreadGroup.num_threads": "threads",
-		"ThreadGroup.ramp_time": "rampup", "ThreadGroup.duration": "duration",
-		"ThreadGroup.delay": "delay"}
+	paramsName = map[string]string{"ThreadGroup.num_threads": "Threads",
+		"ThreadGroup.ramp_time": "RampUp", "ThreadGroup.duration": "Duration",
+		"ThreadGroup.delay": "Delay"}
 )
 
 func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
@@ -47,15 +47,6 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 							if strings.Contains(throughputName, k) {
 								params = append(params, TreadGroupParams{ParamType: "TPS", Name: k, Values: v})
 							}
-							// lUniform := len(jmx.HashTree.HashTree.HashTree[i].HashTree[i1].UniformRandomTimer.StringProp)
-							// for i2 := 0; i2 < lUniform; i2++ {
-							// 	if jmx.HashTree.HashTree.HashTree[i].HashTree[i1].UniformRandomTimer.StringProp[i2].Text != "" {
-							// 		uniformName := jmx.HashTree.HashTree.HashTree[i].HashTree[i1].UniformRandomTimer.StringProp[i2].Text
-							// 		if strings.Contains(uniformName, k) {
-							// 			params = append(params, TreadGroupParams{ParamType: "UniformRandomTimer", Name: k, Values: v})
-							// 		}
-							// 	}
-							// }
 						}
 						break
 					}
@@ -64,7 +55,7 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 			}
 		}
 		if len(params) > 0 {
-			res = append(res, JMXParserResponse{TreadGroupName: treadGroupName, TreadGroupParams: params})
+			res = append(res, JMXParserResponse{TreadGroupName: treadGroupName, TGType: "DefaultTreadGroup", TreadGroupParams: params})
 		}
 	}
 	for i := 0; i < ltg; i++ {
@@ -78,7 +69,7 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 			}
 		}
 		if len(params) > 0 {
-			res = append(res, JMXParserResponse{TreadGroupName: treadGroupName, TreadGroupParams: params})
+			res = append(res, JMXParserResponse{TreadGroupName: treadGroupName, TGType: "BlazemeterConcurrencyTreadGroup", TreadGroupParams: params})
 		}
 	}
 	return res, nil

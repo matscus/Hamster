@@ -18,7 +18,7 @@ type AllScenario struct {
 	Gun               string   `json:"gun"`
 	LastModified      string   `json:"lastmodified"`
 	Projects          []string `json:"projects"`
-	TreadGroupsParams []string `json:"params"`
+	TreadGroupsParams string   `json:"params"`
 }
 
 type AllGenerator struct {

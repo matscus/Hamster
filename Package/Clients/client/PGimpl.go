@@ -123,12 +123,11 @@ func (c PGClient) SetStopTest(runID string) error {
 }
 
 //NewScenario - insert new scenario values to table  scenarios
-func (c PGClient) NewScenario(name string, typeTest string, gun string, projects []string, params []string) (err error) {
+func (c PGClient) NewScenario(name string, typeTest string, gun string, projects []string, params string) (err error) {
 	t := time.Now().Unix()
 	projectstr := "{" + strings.Join(projects, ",") + "}"
-	paramsstr := "{" + strings.Join(params, ",") + "}"
 	timestamp := strconv.FormatInt(t, 10)
-	_, err = db.Exec("INSERT INTO scenarios (name,test_type,last_modified,gun_type,projects,params) VALUES ($1,$2,to_timestamp($3),$4,$5,$6)", name, typeTest, timestamp, gun, projectstr, paramsstr)
+	_, err = db.Exec("INSERT INTO scenarios (name,test_type,last_modified,gun_type,projects,params) VALUES ($1,$2,to_timestamp($3),$4,$5,$6)", name, typeTest, timestamp, gun, projectstr, params)
 	if err != nil {
 		return err
 	}
@@ -180,12 +179,11 @@ func (c PGClient) NewService(id int64, name string, host string, uri string, typ
 }
 
 //UpdateScenario - update scenario values to table  scenarios
-func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun string, projects []string, params []string) (err error) {
+func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun string, projects []string, params string) (err error) {
 	t := time.Now().Unix()
 	timestamp := strconv.FormatInt(t, 10)
 	projectstr := "{" + strings.Join(projects, ",") + "}"
-	paramsstr := "{" + strings.Join(params, ",") + "}"
-	_, err = db.Exec("UPDATE scenarios SET name = $1,test_type  = $2, last_modified = to_timestamp($3), gun_type= $4, projects=$5,params=$6 where id= $7", name, typeTest, timestamp, gun, projectstr, paramsstr, id)
+	_, err = db.Exec("UPDATE scenarios SET name = $1,test_type  = $2, last_modified = to_timestamp($3), gun_type= $4, projects=$5,params=$6 where id= $7", name, typeTest, timestamp, gun, projectstr, params, id)
 	if err != nil {
 		return err
 	}
@@ -214,7 +212,7 @@ func (c PGClient) GetAllScenarios() (*[]subset.AllScenario, error) {
 	res := make([]subset.AllScenario, 0, 100)
 	for rows.Next() {
 		t := subset.AllScenario{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, pq.Array(&t.Projects), pq.Array(&t.TreadGroupsParams)); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, pq.Array(&t.Projects), &t.TreadGroupsParams); err != nil {
 			return &res, err
 		}
 		res = append(res, t)

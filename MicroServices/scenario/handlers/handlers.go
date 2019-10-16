@@ -2,18 +2,22 @@ package handlers
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/Clients/client"
+	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
 )
@@ -220,19 +224,67 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
-				tempDir := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/+temp"
+				tempDir := os.Getenv("DIRPROJECTS") + "/temp/"
 				os.Mkdir(tempDir, os.FileMode(0755))
 				cmd := exec.Command("unzip", newFile, "-d", tempDir)
 				cmd.Run()
+				filesInfo, _ := ioutil.ReadDir(tempDir)
+				fileIfNotExist := true
+				for i := 0; i < len(filesInfo); i++ {
+					name := filesInfo[i].Name()
+					if strings.Contains(name, ".jmx") {
+						fileIfNotExist = true
+						os.Mkdir(tempDir, os.FileMode(0755))
+						file, err := os.Open(tempDir + name)
+						defer file.Close()
+						byteValue, _ := ioutil.ReadAll(file)
+						var testplan jmxparser.JmeterTestPlan
+						xml.Unmarshal(byteValue, &testplan)
+						tgParams, err := testplan.GetTreadGroupsParams()
+						if err != nil {
+							err = os.RemoveAll(tempDir)
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+						} else {
+							l := len(tgParams)
+							for i := 0; i < l; i++ {
+								var tg scenario.TreadGroupsParams
+								tg.TreadGroupsName = tgParams[i].TreadGroupName
+								for _, v := range tgParams[i].TreadGroupParams {
+									params := scenario.TreadGroupParams{ParamType: v.ParamType, Name: v.Name, Values: v.Values}
+									tg.TreadGroupParams = append(tg.TreadGroupParams, params)
+								}
+								// for i2 := 0; i2 < lparam; i2++ {
+								// 	params := scenario.TreadGroupParams{ParamType: tg.TreadGroupParams[i2].ParamType,
+								// 		Name: tg.TreadGroupParams[i2].Name, Values: tg.TreadGroupParams[i2].Values}
+								// 	log.Println("params ", params)
+								// 	tg.TreadGroupParams = append(tg.TreadGroupParams, params)
+								// }
+								s.TreadGroupsParams = append(s.TreadGroupsParams, tg)
+							}
+							err = os.RemoveAll(tempDir)
+							if err != nil {
+								w.WriteHeader(http.StatusInternalServerError)
+								w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+							} else {
+								err = s.InsertToDB()
+								if err != nil {
+									w.WriteHeader(http.StatusInternalServerError)
+									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+								} else {
+									w.WriteHeader(http.StatusOK)
+									w.Write([]byte("{\"Message\":\"update done\"}"))
+									scn.InitData()
+									break
+								}
+							}
+						}
 
-				err = s.InsertToDB()
-				if err != nil {
+					}
+				}
+				if fileIfNotExist {
 					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				} else {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("{\"Message\":\"update done\"}"))
-					scn.InitData()
+					w.Write([]byte("{\"Message\": not found jmx file}"))
 				}
 			}
 		}
@@ -249,38 +301,32 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		return
 	}
-	ok := s.CheckParams()
-	if ok {
-		runsgen, err := scn.CheckGen(s.Generators)
+	runsgen, err := scn.CheckGen(s.Generators)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		err := json.NewEncoder(w).Encode(runsgen)
 		if err != nil {
+			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		}
+	} else {
+		if len(runsgen) == 0 {
+			scn.LastRunsParams.Store(s.Name, s)
+			scn.RunsGenerators.Store(s.Name, s)
+			err = s.Start()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			} else {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("{\"Message\":\"the run\"}"))
+			}
+		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(runsgen)
 			if err != nil {
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			}
-		} else {
-			if len(runsgen) == 0 {
-				scn.LastRunsParams.Store(s.Name, s)
-				scn.RunsGenerators.Store(s.Name, s)
-				err = s.Start()
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				} else {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("{\"Message\":\"the run\"}"))
-				}
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-				err := json.NewEncoder(w).Encode(runsgen)
-				if err != nil {
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				}
-			}
 		}
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"Startup options cannot be empty or equal to 0\"}"))
 	}
 }
 

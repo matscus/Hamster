@@ -55,16 +55,12 @@ func InitData() (err error) {
 		s.LastModified = t.LastModified
 		s.Gun = t.Gun
 		s.Projects = t.Projects
-		l := len(t.TreadGroupsParams)
-		for i := 0; i < l; i++ {
-			var tgp scenario.TreadGroupsParams
-			str := t.TreadGroupsParams[i]
-			err := json.Unmarshal([]byte(str), &tgp)
-			if err != nil {
-				log.Println("Unmarshal params error: ", err)
-			}
-			s.TreadGroupsParams = append(s.TreadGroupsParams, tgp)
+		var tgp []scenario.TreadGroupsParams
+		err := json.Unmarshal([]byte(t.TreadGroupsParams), &tgp)
+		if err != nil {
+			log.Println("Unmarshal params error: ", err)
 		}
+		s.TreadGroupsParams = tgp
 		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, s)
 	}
 	gen, err := pgclient.GetAllGenerators()
@@ -96,7 +92,6 @@ func InitData() (err error) {
 
 //SetState -  init state struct for ws
 func SetState(s bool, id int64, n string, t string, d int64, gun string, g []generators.Generator) {
-
 	if s {
 		starttime := (time.Now().Unix() - time.Unix(10800, 0).Unix())
 		endtime := (starttime + time.Unix(d, 0).Unix())

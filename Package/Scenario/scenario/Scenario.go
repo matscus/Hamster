@@ -1,7 +1,7 @@
 package scenario
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
 )
@@ -19,13 +19,13 @@ type Scenario struct {
 
 //Update - func for update scenario values in table
 func (s *Scenario) Update() (err error) {
-	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, treadGroupsParamsToSliceString(s.TreadGroupsParams))
+	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.TreadGroupsParams))
 }
 
 //InsertToDB - func for insert new scenario values in table
 func (s *Scenario) InsertToDB() (err error) {
 	pgclient := client.PGClient{}.New()
-	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects, treadGroupsParamsToSliceString(s.TreadGroupsParams))
+	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.TreadGroupsParams))
 	return err
 }
 
@@ -58,11 +58,7 @@ func (s *Scenario) CheckScenario() (res bool, err error) {
 	return res, nil
 }
 
-func treadGroupsParamsToSliceString(params []TreadGroupsParams) []string {
-	l := len(params)
-	res := make([]string, 0, l)
-	for i := 0; i < l; i++ {
-		res = append(res, fmt.Sprint(params[i]))
-	}
-	return res
+func paramsToString(params []TreadGroupsParams) string {
+	res, _ := json.MarshalIndent(params, "", " ")
+	return string(res)
 }
