@@ -7,7 +7,7 @@ import (
 var (
 	paramsName = map[string]string{"ThreadGroup.num_threads": "Threads",
 		"ThreadGroup.ramp_time": "RampUp", "ThreadGroup.duration": "Duration",
-		"ThreadGroup.delay": "Delay"}
+		"ThreadGroup.delay": "Delay", "TargetLevel": "Threads", "Hold": "Duration"}
 )
 
 func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
@@ -67,7 +67,12 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 			for k, v := range resParams {
 				text := strings.Trim(vl.Text, "${}")
 				if text == k {
-					params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
+					paramTypeName, ok := paramsName[vl.Name]
+					if ok {
+						params = append(params, ThreadGroupParams{Type: paramTypeName, Name: k, Value: v})
+					} else {
+						params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
+					}
 				}
 			}
 		}
