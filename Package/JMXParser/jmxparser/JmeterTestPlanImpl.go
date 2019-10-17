@@ -25,8 +25,6 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 	for i := 0; i < ltg; i++ {
 		threadGroupName := jmx.HashTree.HashTree.ThreadGroup[i].Testname
 		params := make([]ThreadGroupParams, 0, largs)
-		//log.Println("init params", params)
-		//log.Println("TG name", jmx.HashTree.HashTree.ThreadGroup[i].Testname)
 		for _, vl := range jmx.HashTree.HashTree.ThreadGroup[i].StringProp {
 			for k, v := range resParams {
 				text := strings.Trim(vl.Text, "${}")
@@ -48,7 +46,7 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 						throughputName := jmx.HashTree.HashTree.HashTree[i].HashTree[i1].ConstantThroughputTimer.StringProp.Text
 						for k, v := range resParams {
 							text := strings.Trim(throughputName, "${}")
-							if text == k {
+							if strings.Contains(text, k) {
 								params = append(params, ThreadGroupParams{Type: "TPS", Name: k, Value: v})
 							}
 						}
