@@ -17,16 +17,20 @@ type Scenario struct {
 	ThreadGroups []ThreadGroup `json:"threadGroups"`
 }
 
-//Update - func for update scenario values in table
-func (s *Scenario) Update() (err error) {
-	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.ThreadGroups))
-}
-
 //InsertToDB - func for insert new scenario values in table
 func (s *Scenario) InsertToDB() (err error) {
 	pgclient := client.PGClient{}.New()
 	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.ThreadGroups))
 	return err
+}
+
+//CheckScenario - func for delete secenario(rows db and files)
+func (s *Scenario) CheckScenario() (res bool, err error) {
+	res, err = client.PGClient{}.New().CheckScenario(s.Name, s.Gun, s.Projects)
+	if err != nil {
+		return res, err
+	}
+	return res, nil
 }
 
 //GetNameForID - func for insert new scenario values in table
@@ -39,6 +43,11 @@ func (s *Scenario) GetNameForID() (res string, err error) {
 	return res, err
 }
 
+//Update - func for update scenario values in table
+func (s *Scenario) Update() (err error) {
+	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.ThreadGroups))
+}
+
 //DeleteScenario - func for delete secenario(rows db and files)
 func (s *Scenario) DeleteScenario() (err error) {
 	pgclient := client.PGClient{}.New()
@@ -47,15 +56,6 @@ func (s *Scenario) DeleteScenario() (err error) {
 		return err
 	}
 	return nil
-}
-
-//CheckScenario - func for delete secenario(rows db and files)
-func (s *Scenario) CheckScenario() (res bool, err error) {
-	res, err = client.PGClient{}.New().CheckScenario(s.Name, s.Gun, s.Projects)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
 }
 
 func paramsToString(params []ThreadGroup) string {

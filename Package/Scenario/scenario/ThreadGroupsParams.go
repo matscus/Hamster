@@ -9,7 +9,7 @@ type ThreadGroup struct {
 
 //ThreadGroupParams - simple jmeter tread  groups param from TreadGroupsParams struct
 type ThreadGroupParams struct {
-	ParamType string `json:"paramType"`
-	Name      string `json:"name"`
-	Value     string `json:"value"`
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }

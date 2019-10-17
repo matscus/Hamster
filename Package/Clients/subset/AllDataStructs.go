@@ -21,6 +21,7 @@ type AllScenario struct {
 	TreadGroups  string   `json:"params"`
 }
 
+//AllGenerator - struct for response all generators data
 type AllGenerator struct {
 	ID       int64    `json:"id"`
 	Host     string   `json:"host"`

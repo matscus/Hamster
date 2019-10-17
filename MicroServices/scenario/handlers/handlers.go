@@ -251,7 +251,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 								var tg scenario.ThreadGroup
 								tg.ThreadGroupName = tgParams[i].ThreadGroupName
 								for _, v := range tgParams[i].ThreadGroupParams {
-									params := scenario.ThreadGroupParams{ParamType: v.ParamType, Name: v.Name, Value: v.Value}
+									params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
 									tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
 								}
 								s.ThreadGroups = append(s.ThreadGroups, tg)

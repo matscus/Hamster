@@ -25,14 +25,17 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 	for i := 0; i < ltg; i++ {
 		threadGroupName := jmx.HashTree.HashTree.ThreadGroup[i].Testname
 		params := make([]ThreadGroupParams, 0, largs)
+		//log.Println("init params", params)
+		//log.Println("TG name", jmx.HashTree.HashTree.ThreadGroup[i].Testname)
 		for _, vl := range jmx.HashTree.HashTree.ThreadGroup[i].StringProp {
 			for k, v := range resParams {
-				if strings.Contains(vl.Text, k) {
+				text := strings.Trim(vl.Text, "${}")
+				if text == k {
 					paramTypeName, ok := paramsName[vl.Name]
 					if ok {
-						params = append(params, ThreadGroupParams{ParamType: paramTypeName, Name: k, Value: v})
+						params = append(params, ThreadGroupParams{Type: paramTypeName, Name: k, Value: v})
 					} else {
-						params = append(params, ThreadGroupParams{ParamType: vl.Name, Name: k, Value: v})
+						params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
 					}
 				}
 			}
@@ -44,8 +47,9 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 					if jmx.HashTree.HashTree.HashTree[i].HashTree[i1].ConstantThroughputTimer.Testname != "" {
 						throughputName := jmx.HashTree.HashTree.HashTree[i].HashTree[i1].ConstantThroughputTimer.StringProp.Text
 						for k, v := range resParams {
-							if strings.Contains(throughputName, k) {
-								params = append(params, ThreadGroupParams{ParamType: "TPS", Name: k, Value: v})
+							text := strings.Trim(throughputName, "${}")
+							if text == k {
+								params = append(params, ThreadGroupParams{Type: "TPS", Name: k, Value: v})
 							}
 						}
 						break
@@ -63,8 +67,9 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 		params := make([]ThreadGroupParams, 0, largs)
 		for _, vl := range jmx.HashTree.HashTree.ComBlazemeterJmeterThreadsConcurrencyConcurrencyThreadGroup[i].StringProp {
 			for k, v := range resParams {
-				if strings.Contains(vl.Text, k) {
-					params = append(params, ThreadGroupParams{ParamType: vl.Name, Name: k, Value: v})
+				text := strings.Trim(vl.Text, "${}")
+				if text == k {
+					params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
 				}
 			}
 		}

@@ -1,5 +1,6 @@
 package subset
 
+//SSHClient - ssh package impl
 type SSHClient interface {
 	Run(target string, str string) error
 	RunNoWait(target string, str string) error

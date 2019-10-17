@@ -28,18 +28,6 @@ func (u *User) New() subset.User {
 	return user
 }
 
-//CheckUser - func for check users (for )validation of user token)
-func (u *User) CheckUser() (res bool, err error) {
-	hash, err := client.PGClient{}.New().GetUserHash(u.User)
-	password, err := b64.StdEncoding.DecodeString(u.Password)
-	ok := compareHash(hash, password)
-	if ok {
-		return true, nil
-	}
-	err = errors.New("check user fail")
-	return false, err
-}
-
 //NewTokenString - func for generate and response new token
 func (u User) NewTokenString() (token string, err error) {
 	projects, err := client.PGClient{}.New().GetAllUserProject(u.User)
@@ -51,6 +39,18 @@ func (u User) NewTokenString() (token string, err error) {
 		return "", err
 	}
 	return token, err
+}
+
+//CheckUser - func for check users (for )validation of user token)
+func (u *User) CheckUser() (res bool, err error) {
+	hash, err := client.PGClient{}.New().GetUserHash(u.User)
+	password, err := b64.StdEncoding.DecodeString(u.Password)
+	ok := compareHash(hash, password)
+	if ok {
+		return true, nil
+	}
+	err = errors.New("check user fail")
+	return false, err
 }
 
 func compareHash(hash string, password []byte) bool {

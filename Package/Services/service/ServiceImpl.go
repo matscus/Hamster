@@ -45,16 +45,6 @@ func (s *Service) Stop(user string) error {
 	return err
 }
 
-//Update - update service info from database
-func (s *Service) Update() error {
-	if s.RunSTR == "" {
-		return client.PGClient{}.New().UpdateServiceWithOutRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects)
-	} else {
-		return client.PGClient{}.New().UpdateServiceWithRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
-	}
-
-}
-
 //InsertToDB - insert new generator to database
 func (s *Service) InsertToDB() error {
 	pgclient := client.PGClient{}.New()
@@ -63,6 +53,16 @@ func (s *Service) InsertToDB() error {
 		return err
 	}
 	return pgclient.NewService(id, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+}
+
+//Update - update service info from database
+func (s *Service) Update() error {
+	if s.RunSTR == "" {
+		return client.PGClient{}.New().UpdateServiceWithOutRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects)
+	} else {
+		return client.PGClient{}.New().UpdateServiceWithRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+	}
+
 }
 
 //InstallServiceToRemoteHost - install new service from remote host

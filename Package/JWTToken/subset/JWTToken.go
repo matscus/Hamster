@@ -1,6 +1,6 @@
 package subset
 
 type Token interface {
-	Generate(user string, projects []string) (string, error)
 	Check() bool
+	Generate(user string, projects []string) (string, error)
 }

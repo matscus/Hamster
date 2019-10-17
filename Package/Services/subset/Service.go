@@ -1,9 +1,10 @@
 package subset
 
 type Service interface {
+	InsertToDB() (err error)
 	Run(user string) error
 	Stop(user string) error
 	Update() error
-	InsertToDB() (err error)
-	InstallServiceToRemoteHost(user string) error
+	InstallServiceToRemoteHost(user string) (err error)
+	DeleteServiceToRemoteHost(user string) (err error)
 }

@@ -32,6 +32,7 @@ func (t Token) Generate(user string, projects []string) (tokenstring string, err
 	return tokenstring, err
 }
 
+//Check  - func for check validate JWT, result bool
 func (t Token) Check() bool {
 	token, err := jwt.Parse(t.Token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("KEY")), nil

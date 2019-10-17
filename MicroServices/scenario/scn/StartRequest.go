@@ -13,17 +13,6 @@ import (
 )
 
 //StartRequest - struct request for start scenario
-// type StartRequest struct {
-// 	Name       string `json:"name"`
-// 	Type       string `json:"type"`
-// 	Users      int    `json:"users"`
-// 	Rampup     int    `json:"rampup"`
-// 	Duration   int64  `json:"duration"`
-// 	Throughput int    `json:"throughput"`
-// 	Gun        string `json:"gun"`
-// 	Generators []generators.Generator
-// }
-//StartRequest - struct request for start scenario
 type StartRequest struct {
 	Name       string `json:"name"`
 	Type       string `json:"type"`
@@ -61,7 +50,7 @@ func (s *StartRequest) Start() error {
 				str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
 				for _, v := range s.Params {
 					for _, v1 := range v.ThreadGroupParams {
-						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
+						if v1.Type == "Threads" || v1.Type == "TargetLevel" {
 							u, _ = strconv.ParseFloat(v1.Value, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
@@ -98,7 +87,7 @@ func (s *StartRequest) Start() error {
 				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
 				for _, v := range s.Params {
 					for _, v1 := range v.ThreadGroupParams {
-						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
+						if v1.Type == "Threads" || v1.Type == "TargetLevel" {
 							u, _ = strconv.ParseFloat(v1.Value, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
@@ -121,7 +110,7 @@ func (s *StartRequest) Start() error {
 	var duration int64
 	for _, v := range s.Params {
 		for _, v1 := range v.ThreadGroupParams {
-			if v1.ParamType == "Hold" || v1.ParamType == "Duration" {
+			if v1.Type == "Hold" || v1.Type == "Duration" {
 				d, _ := strconv.Atoi(v1.Value)
 				duration = int64(d)
 			}

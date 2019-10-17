@@ -6,7 +6,7 @@ type JMXParserResponse struct {
 	ThreadGroupParams []ThreadGroupParams
 }
 type ThreadGroupParams struct {
-	ParamType string
-	Name      string
-	Value     string
+	Type  string
+	Name  string
+	Value string
 }
