@@ -1,5 +1,6 @@
 package jmxparser
 
+//UniformRandomTimer - struct from UniformRandomTimer
 type UniformRandomTimer struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`

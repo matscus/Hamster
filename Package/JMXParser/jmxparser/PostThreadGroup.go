@@ -1,5 +1,6 @@
 package jmxparser
 
+//PostThreadGroup - struct for theardown thread group
 type PostThreadGroup struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`

@@ -1,5 +1,6 @@
 package jmxparser
 
+//TestPlan - struct from test plan
 type TestPlan struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`

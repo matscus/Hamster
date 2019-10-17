@@ -1,5 +1,6 @@
 package jmxparser
 
+//ComBlazemeterJmeterRandomCSVDataSetConfig - struct for rundom csv config plugin(bzt)
 type ComBlazemeterJmeterRandomCSVDataSetConfig struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`

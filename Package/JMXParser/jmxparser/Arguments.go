@@ -1,5 +1,6 @@
 package jmxparser
 
+//Arguments - struct user define params
 type Arguments struct {
 	Text           string `xml:",chardata"`
 	Guiclass       string `xml:"guiclass,attr"`

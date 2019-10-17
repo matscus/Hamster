@@ -1,5 +1,6 @@
 package jmxparser
 
+//ThreadGroup - struct for standart thread group
 type ThreadGroup struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`

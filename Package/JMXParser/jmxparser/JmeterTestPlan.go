@@ -2,6 +2,7 @@ package jmxparser
 
 import "encoding/xml"
 
+//JmeterTestPlan - test plan struct(head struct)
 type JmeterTestPlan struct {
 	XMLName    xml.Name `xml:"jmeterTestPlan"`
 	Text       string   `xml:",chardata"`

@@ -1,5 +1,6 @@
 package jmxparser
 
+//ConstantThroughputTimer - func for Constant Throughput Timer
 type ConstantThroughputTimer struct {
 	Text      string `xml:",chardata"`
 	Guiclass  string `xml:"guiclass,attr"`

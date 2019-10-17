@@ -10,6 +10,7 @@ var (
 		"ThreadGroup.delay": "Delay", "TargetLevel": "Threads", "Hold": "Duration"}
 )
 
+//GetTreadGroupsParams - func to return slice jmeter thread groups params
 func (jmx JmeterTestPlan) GetTreadGroupsParams() ([]JMXParserResponse, error) {
 	ltg := len(jmx.HashTree.HashTree.ThreadGroup)
 	lbztg := len(jmx.HashTree.HashTree.ComBlazemeterJmeterThreadsConcurrencyConcurrencyThreadGroup)

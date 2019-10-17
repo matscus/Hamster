@@ -1,5 +1,6 @@
 package jmxparser
 
+//OnceOnlyController - struct for Once controller
 type OnceOnlyController struct {
 	Text      string `xml:",chardata"`
 	Guiclass  string `xml:"guiclass,attr"`

@@ -1,5 +1,6 @@
 package jmxparser
 
+//ComBlazemeterJmeterThreadsConcurrencyConcurrencyThreadGroup - struct for BZT concurrency thread groups
 type ComBlazemeterJmeterThreadsConcurrencyConcurrencyThreadGroup struct {
 	Text        string `xml:",chardata"`
 	Guiclass    string `xml:"guiclass,attr"`

@@ -1,5 +1,6 @@
 package jmxparser
 
+//TestAction - struct for Test action (pacing)
 type TestAction struct {
 	Text      string `xml:",chardata"`
 	Guiclass  string `xml:"guiclass,attr"`

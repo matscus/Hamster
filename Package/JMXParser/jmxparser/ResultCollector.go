@@ -1,5 +1,6 @@
 package jmxparser
 
+//ResultCollector - struct for result collector
 type ResultCollector struct {
 	Text      string `xml:",chardata"`
 	Guiclass  string `xml:"guiclass,attr"`

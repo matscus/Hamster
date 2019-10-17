@@ -1,5 +1,6 @@
 package jmxparser
 
+//JSR223Sampler - struct for JSR223Sampler
 type JSR223Sampler []struct {
 	Text       string `xml:",chardata"`
 	Guiclass   string `xml:"guiclass,attr"`
