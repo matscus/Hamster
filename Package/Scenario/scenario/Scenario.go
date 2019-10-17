@@ -8,24 +8,24 @@ import (
 
 //Scenario - struct for scenario
 type Scenario struct {
-	ID                int64               `json:"id"`
-	Name              string              `json:"name"`
-	Type              string              `json:"type"`
-	Gun               string              `json:"gun"`
-	LastModified      string              `json:"lastmodified"`
-	Projects          []string            `json:"projects"`
-	TreadGroupsParams []TreadGroupsParams `json:"TreadGroupsParams"`
+	ID           int64         `json:"id"`
+	Name         string        `json:"name"`
+	Type         string        `json:"type"`
+	Gun          string        `json:"gun"`
+	LastModified string        `json:"lastmodified"`
+	Projects     []string      `json:"projects"`
+	ThreadGroups []ThreadGroup `json:"threadGroups"`
 }
 
 //Update - func for update scenario values in table
 func (s *Scenario) Update() (err error) {
-	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.TreadGroupsParams))
+	return client.PGClient{}.New().UpdateScenario(s.ID, s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.ThreadGroups))
 }
 
 //InsertToDB - func for insert new scenario values in table
 func (s *Scenario) InsertToDB() (err error) {
 	pgclient := client.PGClient{}.New()
-	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.TreadGroupsParams))
+	err = pgclient.NewScenario(s.Name, s.Type, s.Gun, s.Projects, paramsToString(s.ThreadGroups))
 	return err
 }
 
@@ -58,7 +58,7 @@ func (s *Scenario) CheckScenario() (res bool, err error) {
 	return res, nil
 }
 
-func paramsToString(params []TreadGroupsParams) string {
+func paramsToString(params []ThreadGroup) string {
 	res, _ := json.MarshalIndent(params, "", " ")
 	return string(res)
 }

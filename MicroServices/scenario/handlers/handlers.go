@@ -248,19 +248,13 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 						} else {
 							l := len(tgParams)
 							for i := 0; i < l; i++ {
-								var tg scenario.TreadGroupsParams
-								tg.TreadGroupsName = tgParams[i].TreadGroupName
-								for _, v := range tgParams[i].TreadGroupParams {
-									params := scenario.TreadGroupParams{ParamType: v.ParamType, Name: v.Name, Values: v.Values}
-									tg.TreadGroupParams = append(tg.TreadGroupParams, params)
+								var tg scenario.ThreadGroup
+								tg.ThreadGroupName = tgParams[i].ThreadGroupName
+								for _, v := range tgParams[i].ThreadGroupParams {
+									params := scenario.ThreadGroupParams{ParamType: v.ParamType, Name: v.Name, Value: v.Value}
+									tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
 								}
-								// for i2 := 0; i2 < lparam; i2++ {
-								// 	params := scenario.TreadGroupParams{ParamType: tg.TreadGroupParams[i2].ParamType,
-								// 		Name: tg.TreadGroupParams[i2].Name, Values: tg.TreadGroupParams[i2].Values}
-								// 	log.Println("params ", params)
-								// 	tg.TreadGroupParams = append(tg.TreadGroupParams, params)
-								// }
-								s.TreadGroupsParams = append(s.TreadGroupsParams, tg)
+								s.ThreadGroups = append(s.ThreadGroups, tg)
 							}
 							err = os.RemoveAll(tempDir)
 							if err != nil {

@@ -55,12 +55,13 @@ func InitData() (err error) {
 		s.LastModified = t.LastModified
 		s.Gun = t.Gun
 		s.Projects = t.Projects
-		var tgp []scenario.TreadGroupsParams
-		err := json.Unmarshal([]byte(t.TreadGroupsParams), &tgp)
+		var tgp []scenario.ThreadGroup
+
+		err := json.Unmarshal([]byte(t.TreadGroups), &tgp)
 		if err != nil {
 			log.Println("Unmarshal params error: ", err)
 		}
-		s.TreadGroupsParams = tgp
+		s.ThreadGroups = tgp
 		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, s)
 	}
 	gen, err := pgclient.GetAllGenerators()

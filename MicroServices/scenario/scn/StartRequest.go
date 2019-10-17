@@ -29,7 +29,7 @@ type StartRequest struct {
 	Type       string `json:"type"`
 	Gun        string `json:"gun"`
 	Generators []generators.Generator
-	Params     []scenario.TreadGroupsParams
+	Params     []scenario.ThreadGroup
 }
 
 //Start - func for the run scenario
@@ -47,8 +47,8 @@ func (s *StartRequest) Start() error {
 		if gencount == 1 {
 			str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
 			for _, v := range s.Params {
-				for _, v1 := range v.TreadGroupParams {
-					str = str + "-D" + v1.Name + "=" + v1.Values
+				for _, v1 := range v.ThreadGroupParams {
+					str = str + "-D" + v1.Name + "=" + v1.Value
 				}
 			}
 			err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
@@ -60,15 +60,15 @@ func (s *StartRequest) Start() error {
 			for i := 0; i < gencount; i++ {
 				str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
 				for _, v := range s.Params {
-					for _, v1 := range v.TreadGroupParams {
+					for _, v1 := range v.ThreadGroupParams {
 						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
-							u, _ = strconv.ParseFloat(v1.Values, 64)
+							u, _ = strconv.ParseFloat(v1.Value, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
 							userForGen = math.RoundToEven(mod)
 							str = str + "-D" + v1.Name + "=" + fmt.Sprint(userForGen)
 						} else {
-							str = str + "-D" + v1.Name + "=" + v1.Values
+							str = str + "-D" + v1.Name + "=" + v1.Value
 						}
 					}
 				}
@@ -83,8 +83,8 @@ func (s *StartRequest) Start() error {
 		if gencount == 1 {
 			str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
 			for _, v := range s.Params {
-				for _, v1 := range v.TreadGroupParams {
-					str = str + "-J" + v1.Name + "=" + v1.Values
+				for _, v1 := range v.ThreadGroupParams {
+					str = str + "-J" + v1.Name + "=" + v1.Value
 				}
 			}
 			str = str + " &> /dev/null"
@@ -97,15 +97,15 @@ func (s *StartRequest) Start() error {
 			for i := 0; i < gencount; i++ {
 				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
 				for _, v := range s.Params {
-					for _, v1 := range v.TreadGroupParams {
+					for _, v1 := range v.ThreadGroupParams {
 						if v1.ParamType == "Threads" || v1.ParamType == "TargetLevel" {
-							u, _ = strconv.ParseFloat(v1.Values, 64)
+							u, _ = strconv.ParseFloat(v1.Value, 64)
 							g = float64(gencount)
 							mod = math.Mod(u, g)
 							userForGen = math.RoundToEven(mod)
 							str = str + "-J" + v1.Name + "=" + fmt.Sprint(userForGen)
 						} else {
-							str = str + "-J" + v1.Name + "=" + v1.Values
+							str = str + "-J" + v1.Name + "=" + v1.Value
 						}
 					}
 				}
@@ -120,9 +120,9 @@ func (s *StartRequest) Start() error {
 	}
 	var duration int64
 	for _, v := range s.Params {
-		for _, v1 := range v.TreadGroupParams {
+		for _, v1 := range v.ThreadGroupParams {
 			if v1.ParamType == "Hold" || v1.ParamType == "Duration" {
-				d, _ := strconv.Atoi(v1.Values)
+				d, _ := strconv.Atoi(v1.Value)
 				duration = int64(d)
 			}
 		}

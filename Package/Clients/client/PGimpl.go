@@ -212,7 +212,7 @@ func (c PGClient) GetAllScenarios() (*[]subset.AllScenario, error) {
 	res := make([]subset.AllScenario, 0, 100)
 	for rows.Next() {
 		t := subset.AllScenario{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, pq.Array(&t.Projects), &t.TreadGroupsParams); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, pq.Array(&t.Projects), &t.TreadGroups); err != nil {
 			return &res, err
 		}
 		res = append(res, t)
