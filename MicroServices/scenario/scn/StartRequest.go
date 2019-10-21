@@ -14,9 +14,10 @@ import (
 
 //StartRequest - struct request for start scenario
 type StartRequest struct {
-	Name       string `json:"name"`
-	Type       string `json:"type"`
-	Gun        string `json:"gun"`
+	Name       string   `json:"name"`
+	Type       string   `json:"type"`
+	Gun        string   `json:"gun"`
+	Projects   []string `json:"projects"`
 	Generators []generators.Generator
 	Params     []scenario.ThreadGroup
 }
@@ -40,11 +41,12 @@ func (s *StartRequest) Start() error {
 					str = str + "-D" + v1.Name + "=" + v1.Value
 				}
 			}
+			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 			err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
 			if err != nil {
 				return err
 			}
-			go StartScenario(runid, s.Generators[0].Host, str)
+			go StartScenario(runid, s.Generators[0].Host, pathScript, s.Name+".zip", str)
 		} else {
 			for i := 0; i < gencount; i++ {
 				str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
@@ -62,29 +64,31 @@ func (s *StartRequest) Start() error {
 					}
 				}
 				err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
+				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 				if err != nil {
 					return err
 				}
-				go StartScenario(runid, s.Generators[i].Host, str)
+				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 			}
 		}
 	case "jmeter":
 		if gencount == 1 {
-			str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
+			str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t scripts/$$$"
 			for _, v := range s.Params {
 				for _, v1 := range v.ThreadGroupParams {
-					str = str + "-J" + v1.Name + "=" + v1.Value
+					str = str + "-J" + v1.Name + "=" + v1.Value + " "
 				}
 			}
-			str = str + " &> /dev/null"
+			str = str + "&> /dev/null"
+			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 			err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
 			if err != nil {
 				return err
 			}
-			go StartScenario(runid, s.Generators[0].Host, str)
+			go StartScenario(runid, s.Generators[0].Host, pathScript, s.Name+".zip", str)
 		} else {
 			for i := 0; i < gencount; i++ {
-				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh "
+				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t scripts/$$$"
 				for _, v := range s.Params {
 					for _, v1 := range v.ThreadGroupParams {
 						if v1.Type == "Threads" || v1.Type == "TargetLevel" {
@@ -98,12 +102,13 @@ func (s *StartRequest) Start() error {
 						}
 					}
 				}
-				str = str + " &> /dev/null"
+				str = str + "&> /dev/null"
+				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 				err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
 				if err != nil {
 					return err
 				}
-				go StartScenario(runid, s.Generators[i].Host, str)
+				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 			}
 		}
 	}

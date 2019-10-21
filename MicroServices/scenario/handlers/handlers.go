@@ -233,7 +233,8 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 				for i := 0; i < len(filesInfo); i++ {
 					name := filesInfo[i].Name()
 					if strings.Contains(name, ".jmx") {
-						fileIfNotExist = true
+						log.Println("ok")
+						fileIfNotExist = false
 						os.Mkdir(tempDir, os.FileMode(0755))
 						file, err := os.Open(tempDir + name)
 						defer file.Close()
@@ -267,7 +268,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 								} else {
 									w.WriteHeader(http.StatusOK)
-									w.Write([]byte("{\"Message\":\"update done\"}"))
+									w.Write([]byte("{\"Message\":\"Create done\"}"))
 									scn.InitData()
 									break
 								}
