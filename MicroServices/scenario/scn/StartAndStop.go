@@ -2,7 +2,6 @@ package scn
 
 import (
 	"io/ioutil"
-	"log"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -38,7 +37,6 @@ func StartScenario(runid int64, host string, pathScript string, fileName string,
 		name := filesInfo[i].Name()
 		if strings.Contains(name, ".jmx") {
 			text := strings.Replace(str, "$$$", name+" ", 1)
-			log.Println("text  ", text)
 			err = cl.Run(host, text)
 			if err != nil {
 				return err
