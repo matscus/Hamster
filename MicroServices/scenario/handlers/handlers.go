@@ -241,7 +241,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 						byteValue, _ := ioutil.ReadAll(file)
 						var testplan jmxparser.JmeterTestPlan
 						xml.Unmarshal(byteValue, &testplan)
-						tgParams, err := testplan.GetTreadGroupsParams()
+						tgParams, err := testplan.GetTreadGroupsParams(byteValue)
 						if err != nil {
 							err = os.RemoveAll(tempDir)
 							w.WriteHeader(http.StatusInternalServerError)
