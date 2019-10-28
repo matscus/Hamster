@@ -1,6 +1,7 @@
 package jmxparser
 
 import (
+	"log"
 	"regexp"
 	"strings"
 )
@@ -59,16 +60,20 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 		params := make([]ThreadGroupParams, 0, largs)
 		for _, vl := range jmx.HashTree.HashTree.ThreadGroup[i].StringProp {
 			paramValues := vl.Text
-			if strings.Contains(paramValues, "${__P($") {
-				for k, v := range resParams {
-					text := strings.Trim(paramValues, "{__P(${})")
-					if text == k {
-						paramTypeName, ok := paramsNames[vl.Name]
+			if strings.Contains(paramValues, "${__P(") {
+				re := regexp.MustCompile(`\${__P\(\s*(.+?)\s*,\s*(\${.+?}|[0-9]+)\s*\)}`)
+				paramsRegexp := re.FindAllStringSubmatch(paramValues, -1)
+				for i := 0; i < len(paramsRegexp); i++ {
+					if strings.Contains(paramsRegexp[i][2], "${") {
+						text := strings.Trim(paramsRegexp[i][2], "${}")
+						paramTypeName, ok := paramsNames[text]
 						if ok {
-							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: k, Value: v})
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: paramsRegexp[i][1], Value: resParams[text]})
 						} else {
-							params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
+							params = append(params, ThreadGroupParams{Type: vl.Name, Name: paramsRegexp[i][1], Value: resParams[text]})
 						}
+					} else {
+						params = append(params, ThreadGroupParams{Type: vl.Name, Name: paramsRegexp[i][1], Value: paramsRegexp[i][2]})
 					}
 				}
 			} else {
@@ -103,17 +108,34 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 		params := make([]ThreadGroupParams, 0, largs)
 		for _, vl := range jmx.HashTree.HashTree.ComBlazemeterJmeterThreadsConcurrencyConcurrencyThreadGroup[i].StringProp {
 			paramValues := vl.Text
-			if strings.Contains(paramValues, "${__P($") {
-				for k, v := range resParams {
-					text := strings.Trim(paramValues, "{__P(${})")
-					if text == k {
+			if strings.Contains(paramValues, "${__P(") {
+				re := regexp.MustCompile(`\${__P\(\s*(.+?)\s*,\s*(\${.+?}|[0-9]+)\s*\)}`)
+				paramsRegexp := re.FindAllStringSubmatch(paramValues, -1)
+				for i := 0; i < len(paramsRegexp); i++ {
+					if strings.Contains(paramsRegexp[i][2], "${") {
+						text := strings.Trim(paramsRegexp[i][2], "${}")
+						paramTypeName, ok := paramsNames[text]
+						if ok {
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: paramsRegexp[i][1], Value: resParams[text]})
+						} else {
+							params = append(params, ThreadGroupParams{Type: vl.Name, Name: paramsRegexp[i][1], Value: resParams[text]})
+						}
+					} else {
 						paramTypeName, ok := paramsNames[vl.Name]
 						if ok {
-							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: k, Value: v})
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: paramsRegexp[i][1], Value: paramsRegexp[i][2]})
 						} else {
-							params = append(params, ThreadGroupParams{Type: vl.Name, Name: k, Value: v})
+							params = append(params, ThreadGroupParams{Type: vl.Name, Name: paramsRegexp[i][1], Value: paramsRegexp[i][2]})
 						}
 					}
+				}
+			} else if strings.Contains(paramValues, "${") {
+				text := strings.Trim(paramValues, "${}")
+				paramTypeName, ok := paramsNames[vl.Name]
+				if ok {
+					params = append(params, ThreadGroupParams{Type: paramTypeName, Name: text, Value: resParams[text]})
+				} else {
+					params = append(params, ThreadGroupParams{Type: vl.Name, Name: text, Value: resParams[text]})
 				}
 			} else {
 				paramTypeName, ok := paramsNames[vl.Name]
@@ -142,5 +164,6 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 			res = append(res, JMXParserResponse{ThreadGroupName: threadGroupName, ThreadGroupType: "BlazemeterConcurrencyThreadGroup", ThreadGroupParams: params})
 		}
 	}
+	log.Println("parser ", res)
 	return res, nil
 }

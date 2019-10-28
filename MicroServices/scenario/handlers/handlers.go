@@ -248,15 +248,18 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 						} else {
 							l := len(tgParams)
+							log.Println("tgParams ", tgParams)
 							for i := 0; i < l; i++ {
 								var tg scenario.ThreadGroup
 								tg.ThreadGroupName = tgParams[i].ThreadGroupName
 								for _, v := range tgParams[i].ThreadGroupParams {
+									log.Println("======= ")
 									params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
 									tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
 								}
 								s.ThreadGroups = append(s.ThreadGroups, tg)
 							}
+							log.Println("tgParams ", tgParams)
 							err = os.RemoveAll(tempDir)
 							if err != nil {
 								w.WriteHeader(http.StatusInternalServerError)
