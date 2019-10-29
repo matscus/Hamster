@@ -46,6 +46,7 @@ func main() {
 	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods("GET", "OPTIONS").Queries("name", "{name}")
 	r.HandleFunc("/api/v1/scenario/ws", handlers.Ws)
 	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", handlers.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods("GET", "OPTIONS") //.Headers("Content-Type", "application/json")
+	r.HandleFunc("/api/v1/scenario/precheck", middleware.Middleware(handlers.PreCheckScenario)).Methods("POST", "OPTIONS")
 	http.Handle("/api/v1/", r)
 	log.Println("ListenAndServe: " + listenport)
 	err := http.ListenAndServeTLS(listenport, pemPath, keyPath, context.ClearHandler(http.DefaultServeMux))
