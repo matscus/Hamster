@@ -20,6 +20,11 @@ import (
 	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
+	"github.com/matscus/Hamster/Package/ScriptCache/scriptcache"
+)
+
+var (
+	cache = scriptcache.New(1*time.Minute, 5*time.Minute)
 )
 
 func MiddlewareFiles(h http.Handler) http.HandlerFunc {
@@ -233,7 +238,6 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 				for i := 0; i < len(filesInfo); i++ {
 					name := filesInfo[i].Name()
 					if strings.Contains(name, ".jmx") {
-						log.Println("ok")
 						fileIfNotExist = false
 						os.Mkdir(tempDir, os.FileMode(0755))
 						file, err := os.Open(tempDir + name)
@@ -248,18 +252,15 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 						} else {
 							l := len(tgParams)
-							log.Println("tgParams ", tgParams)
 							for i := 0; i < l; i++ {
 								var tg scenario.ThreadGroup
 								tg.ThreadGroupName = tgParams[i].ThreadGroupName
 								for _, v := range tgParams[i].ThreadGroupParams {
-									log.Println("======= ")
 									params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
 									tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
 								}
 								s.ThreadGroups = append(s.ThreadGroups, tg)
 							}
-							log.Println("tgParams ", tgParams)
 							err = os.RemoveAll(tempDir)
 							if err != nil {
 								w.WriteHeader(http.StatusInternalServerError)
@@ -364,5 +365,93 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\" params hot found \"}"))
+	}
+}
+
+//PreCheckScenario - handle to rpe check scenario file, if mandatory thread groups params is nil, return fasle.
+func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
+	file, header, err := r.FormFile("uploadFile")
+	defer file.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+	} else {
+		authHeader := r.Header.Get("Authorization")
+		splitToken := strings.Split(authHeader, "Bearer ")
+		authHeader = strings.TrimSpace(splitToken[1])
+		tempParseDir := os.Getenv("DIRPROJECTS") + "/tempParseDir/" + authHeader + "/"
+		err = os.Mkdir(tempParseDir, os.FileMode(0755))
+		if err != nil {
+			if os.IsExist(err) {
+				fileName := authHeader + header.Filename
+				newFile := tempParseDir + fileName
+				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
+				defer f.Close()
+				_, err = io.Copy(f, file)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
+				cmd := exec.Command("unzip", newFile, "-d", tempParseDir)
+				cmd.Run()
+				prepaseResponce := make([]scn.PreParseResponce, 0, 0)
+				filesInfo, _ := ioutil.ReadDir(tempParseDir)
+				fileIfNotExist := true
+				for i := 0; i < len(filesInfo); i++ {
+					name := filesInfo[i].Name()
+					if strings.Contains(name, ".jmx") {
+						fileIfNotExist = false
+						tempFile, err := os.Open(tempParseDir + name)
+						defer file.Close()
+						byteValue, _ := ioutil.ReadAll(tempFile)
+						var testplan jmxparser.JmeterTestPlan
+						xml.Unmarshal(byteValue, &testplan)
+						tgParams, err := testplan.GetTreadGroupsParams(byteValue)
+						if err != nil {
+							err = os.RemoveAll(tempParseDir)
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+						} else {
+							l := len(tgParams)
+							for i := 0; i < l; i++ {
+								res := make([]string, 0, 4)
+								l := len(tgParams[i].ThreadGroupParams)
+								for ii := 0; ii < l; ii++ {
+									if tgParams[i].ThreadGroupParams[ii].Name == "" {
+										res = append(res, tgParams[i].ThreadGroupParams[ii].Type)
+									}
+								}
+								if len(res) > 0 {
+									prepaseResponce = append(prepaseResponce, scn.PreParseResponce{ThreadGroupName: tgParams[i].ThreadGroupName, FailedParams: res})
+								}
+							}
+							if len(prepaseResponce) == 0 {
+								cache.Set(fileName, scn.ScriptCache{ScriptFile: file, ParseParams: tgParams}, 1*time.Minute)
+								os.Remove(tempParseDir)
+							} else {
+								w.WriteHeader(http.StatusInternalServerError)
+								err := json.NewEncoder(w).Encode(prepaseResponce)
+								if err != nil {
+									w.WriteHeader(http.StatusInternalServerError)
+									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+								}
+							}
+						}
+					}
+				}
+				if fileIfNotExist {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\": not found jmx file}"))
+				}
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			}
+		}
+
 	}
 }
