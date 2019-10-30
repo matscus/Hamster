@@ -2,6 +2,7 @@ package jmxparser
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -82,9 +83,17 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 						}
 					}
 				} else {
-					paramTypeName, ok := paramsNames[vl.Name]
-					if ok && vl.Text != "" {
-						params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: vl.Text})
+					_, err := strconv.Atoi(vl.Text)
+					if err != nil {
+						paramTypeName, ok := paramsNames[vl.Name]
+						if ok && vl.Text != "" {
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: ""})
+						}
+					} else {
+						paramTypeName, ok := paramsNames[vl.Name]
+						if ok && vl.Text != "" {
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: vl.Text})
+						}
 					}
 				}
 			}
@@ -150,9 +159,17 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 						params = append(params, ThreadGroupParams{Type: vl.Name, Name: text, Value: resParams[text]})
 					}
 				} else {
-					paramTypeName, ok := paramsNames[vl.Name]
-					if ok && vl.Text != "" {
-						params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: vl.Text})
+					_, err := strconv.Atoi(vl.Text)
+					if err != nil {
+						paramTypeName, ok := paramsNames[vl.Name]
+						if ok && vl.Text != "" {
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: ""})
+						}
+					} else {
+						paramTypeName, ok := paramsNames[vl.Name]
+						if ok && vl.Text != "" {
+							params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: vl.Text})
+						}
 					}
 				}
 			}
