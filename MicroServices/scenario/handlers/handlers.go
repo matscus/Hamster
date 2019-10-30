@@ -379,11 +379,13 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		splitToken := strings.Split(authHeader, "Bearer ")
 		authHeader = strings.TrimSpace(splitToken[1])
-		tempParseDir := os.Getenv("DIRPROJECTS") + "/tempParseDir/" + authHeader + "/"
+		tempParseDir := os.Getenv("DIRPROJECTS") + "/tempParseDir/" // + authHeader //+ "/"
 		err = os.Mkdir(tempParseDir, os.FileMode(0755))
 		if err != nil {
 			if os.IsExist(err) {
-				fileName := authHeader + header.Filename
+				tempParseDir = tempParseDir + authHeader[0:19] + "/"
+				os.Mkdir(tempParseDir, os.FileMode(0755))
+				fileName := authHeader[0:19] + header.Filename
 				newFile := tempParseDir + fileName
 				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 				if err != nil {
@@ -421,7 +423,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 								res := make([]string, 0, 4)
 								l := len(tgParams[i].ThreadGroupParams)
 								for ii := 0; ii < l; ii++ {
-									if tgParams[i].ThreadGroupParams[ii].Name == "" {
+									if tgParams[i].ThreadGroupParams[ii].Value == "" {
 										res = append(res, tgParams[i].ThreadGroupParams[ii].Type)
 									}
 								}
@@ -431,7 +433,9 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 							}
 							if len(prepaseResponce) == 0 {
 								cache.Set(fileName, scn.ScriptCache{ScriptFile: file, ParseParams: tgParams}, 1*time.Minute)
-								os.Remove(tempParseDir)
+								os.RemoveAll(tempParseDir)
+								w.WriteHeader(http.StatusOK)
+								w.Write([]byte("{\"Message\":\"script structure complies with the standard \"}"))
 							} else {
 								w.WriteHeader(http.StatusInternalServerError)
 								err := json.NewEncoder(w).Encode(prepaseResponce)
