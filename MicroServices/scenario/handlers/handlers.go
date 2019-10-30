@@ -437,6 +437,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 								w.WriteHeader(http.StatusOK)
 								w.Write([]byte("{\"Message\":\"script structure complies with the standard \"}"))
 							} else {
+								os.RemoveAll(tempParseDir)
 								w.WriteHeader(http.StatusInternalServerError)
 								err := json.NewEncoder(w).Encode(prepaseResponce)
 								if err != nil {
