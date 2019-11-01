@@ -30,16 +30,14 @@ type JmeterTestPlan struct {
 					} `xml:"stringProp"`
 				} `xml:"JSR223Sampler"`
 				HashTree []struct {
-					HashTree []struct {
-						Text                    string                  `xml:",chardata"`
-						JSR223Sampler           []JSR223Sampler         `xml:"JSR223Sampler"`
-						HashTree                []string                `xml:"hashTree"`
-						ConstantThroughputTimer ConstantThroughputTimer `xml:"ConstantThroughputTimer"`
-						UniformRandomTimer      UniformRandomTimer      `xml:"UniformRandomTimer"`
-					} `xml:"hashTree"`
-					OnceOnlyController OnceOnlyController `xml:"OnceOnlyController"`
-					TestAction         TestAction         `xml:"TestAction"`
+					Text                    string                  `xml:",chardata"`
+					JSR223Sampler           []JSR223Sampler         `xml:"JSR223Sampler"`
+					HashTree                []string                `xml:"hashTree"`
+					ConstantThroughputTimer ConstantThroughputTimer `xml:"ConstantThroughputTimer"`
+					UniformRandomTimer      UniformRandomTimer      `xml:"UniformRandomTimer"`
 				} `xml:"hashTree"`
+				OnceOnlyController OnceOnlyController `xml:"OnceOnlyController"`
+				TestAction         TestAction         `xml:"TestAction"`
 			} `xml:"hashTree"`
 			Arguments                                                   []Arguments                                                   `xml:"Arguments"`
 			ResultCollector                                             ResultCollector                                               `xml:"ResultCollector"`
