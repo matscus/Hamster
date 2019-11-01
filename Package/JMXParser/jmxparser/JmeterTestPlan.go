@@ -16,8 +16,9 @@ type JmeterTestPlan struct {
 			Text                                      string                                    `xml:",chardata"`
 			ComBlazemeterJmeterRandomCSVDataSetConfig ComBlazemeterJmeterRandomCSVDataSetConfig `xml:"com.blazemeter.jmeter.RandomCSVDataSetConfig"`
 			HashTree                                  []struct {
-				Text          string `xml:",chardata"`
-				JSR223Sampler []struct {
+				Text                  string                `xml:",chardata"`
+				TransactionController TransactionController `xml:"TransactionController"`
+				JSR223Sampler         []struct {
 					Text       string `xml:",chardata"`
 					Guiclass   string `xml:"guiclass,attr"`
 					Testclass  string `xml:"testclass,attr"`
@@ -29,14 +30,16 @@ type JmeterTestPlan struct {
 					} `xml:"stringProp"`
 				} `xml:"JSR223Sampler"`
 				HashTree []struct {
-					Text                    string                  `xml:",chardata"`
-					JSR223Sampler           []JSR223Sampler         `xml:"JSR223Sampler"`
-					HashTree                []string                `xml:"hashTree"`
-					ConstantThroughputTimer ConstantThroughputTimer `xml:"ConstantThroughputTimer"`
-					UniformRandomTimer      UniformRandomTimer      `xml:"UniformRandomTimer"`
+					HashTree []struct {
+						Text                    string                  `xml:",chardata"`
+						JSR223Sampler           []JSR223Sampler         `xml:"JSR223Sampler"`
+						HashTree                []string                `xml:"hashTree"`
+						ConstantThroughputTimer ConstantThroughputTimer `xml:"ConstantThroughputTimer"`
+						UniformRandomTimer      UniformRandomTimer      `xml:"UniformRandomTimer"`
+					} `xml:"hashTree"`
+					OnceOnlyController OnceOnlyController `xml:"OnceOnlyController"`
+					TestAction         TestAction         `xml:"TestAction"`
 				} `xml:"hashTree"`
-				OnceOnlyController OnceOnlyController `xml:"OnceOnlyController"`
-				TestAction         TestAction         `xml:"TestAction"`
 			} `xml:"hashTree"`
 			Arguments                                                   []Arguments                                                   `xml:"Arguments"`
 			ResultCollector                                             ResultCollector                                               `xml:"ResultCollector"`

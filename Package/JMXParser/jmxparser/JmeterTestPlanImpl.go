@@ -45,22 +45,27 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 		}
 	}
 	thgTimer := make([]ConstantThroughputTimer, 0, ltg+lbztg)
-	for i := 0; i < len(jmx.HashTree.HashTree.HashTree); i++ {
-		if jmx.HashTree.HashTree.HashTree[i].TestAction.Testname != "" {
-			l := len(jmx.HashTree.HashTree.HashTree[i].HashTree)
-			for i1 := 0; i1 < l; i1++ {
-				if jmx.HashTree.HashTree.HashTree[i].HashTree[i1].ConstantThroughputTimer.Testname != "" {
-					thgTimer = append(thgTimer, jmx.HashTree.HashTree.HashTree[i].HashTree[i1].ConstantThroughputTimer)
+	l := len(jmx.HashTree.HashTree.HashTree)
+	for i := 0; i < l; i++ {
+		ll := len(jmx.HashTree.HashTree.HashTree[i].HashTree)
+		for ii := 0; ii < ll; ii++ {
+			if jmx.HashTree.HashTree.HashTree[i].HashTree[ii].TestAction.Testname != "" {
+				lll := len(jmx.HashTree.HashTree.HashTree[i].HashTree[ii].HashTree)
+				for iii := 0; iii < lll; iii++ {
+					if jmx.HashTree.HashTree.HashTree[i].HashTree[ii].HashTree[iii].ConstantThroughputTimer.Testname != "" {
+						thgTimer = append(thgTimer, jmx.HashTree.HashTree.HashTree[i].HashTree[ii].HashTree[iii].ConstantThroughputTimer)
+					}
 				}
 			}
 		}
+
 	}
 	for i := 0; i < ltg; i++ {
 		threadGroupName := jmx.HashTree.HashTree.ThreadGroup[i].Testname
 		params := make([]ThreadGroupParams, 0, largs)
 		for _, vl := range jmx.HashTree.HashTree.ThreadGroup[i].StringProp {
 			paramValues := vl.Text
-			if paramValues == "" {
+			if paramValues == "" && vl.Name != "ThreadGroup.delay" {
 				paramTypeName, ok := paramsNames[vl.Name]
 				if ok {
 					params = append(params, ThreadGroupParams{Type: paramTypeName, Name: "", Value: ""})
@@ -72,7 +77,7 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 					for i := 0; i < len(paramsRegexp); i++ {
 						if strings.Contains(paramsRegexp[i][2], "${") {
 							text := strings.Trim(paramsRegexp[i][2], "${}")
-							paramTypeName, ok := paramsNames[text]
+							paramTypeName, ok := paramsNames[vl.Name]
 							if ok {
 								params = append(params, ThreadGroupParams{Type: paramTypeName, Name: paramsRegexp[i][1], Value: resParams[text]})
 							} else {
@@ -135,7 +140,7 @@ func (jmx JmeterTestPlan) GetTreadGroupsParams(tempScripsBytes []byte) ([]JMXPar
 					for i := 0; i < len(paramsRegexp); i++ {
 						if strings.Contains(paramsRegexp[i][2], "${") {
 							text := strings.Trim(paramsRegexp[i][2], "${}")
-							paramTypeName, ok := paramsNames[text]
+							paramTypeName, ok := paramsNames[vl.Name]
 							if ok {
 								params = append(params, ThreadGroupParams{Type: paramTypeName, Name: paramsRegexp[i][1], Value: resParams[text]})
 							} else {
