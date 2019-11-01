@@ -131,13 +131,13 @@ func (s *StartRequest) Start() error {
 				switch v1.Type {
 				case "RampUp":
 					d, _ := strconv.Atoi(v1.Value)
-					rampup = int64(d * 60)
+					rampup = int64(d)
 				case "Steps":
 					d, _ := strconv.Atoi(v1.Value)
-					steps = int64(d * 60)
+					steps = int64(d)
 				case "Duration":
 					d, _ := strconv.Atoi(v1.Value)
-					duration = int64(d * 60)
+					duration = int64(d)
 				}
 			}
 			allDuration = append(allDuration, rampup*steps+duration)
