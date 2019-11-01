@@ -211,79 +211,122 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"dublicate scenario name in the project\"}"))
 	} else {
-		file, _, err := r.FormFile("uploadFile")
+		file, header, err := r.FormFile("uploadFile")
 		defer file.Close()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		} else {
-			newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
-			f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			}
-			defer f.Close()
-			_, err = io.Copy(f, file)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			authHeader := r.Header.Get("Authorization")
+			splitToken := strings.Split(authHeader, "Bearer ")
+			authHeader = strings.TrimSpace(splitToken[1])
+			fileName := authHeader[0:19] + header.Filename
+			cacheScripts, ok := cache.Get(fileName)
+			if ok {
+				scripts := cacheScripts.(scn.ScriptCache)
+				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
+				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
+				defer f.Close()
+				_, err = io.Copy(f, file)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					l := len(scripts.ParseParams)
+					for i := 0; i < l; i++ {
+						var tg scenario.ThreadGroup
+						tg.ThreadGroupName = scripts.ParseParams[i].ThreadGroupName
+						tg.ThreadGroupType = scripts.ParseParams[i].ThreadGroupType
+						for _, v := range scripts.ParseParams[i].ThreadGroupParams {
+							params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
+							tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
+						}
+						s.ThreadGroups = append(s.ThreadGroups, tg)
+					}
+					err = s.InsertToDB()
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+					} else {
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte("{\"Message\":\"Create done\"}"))
+						scn.InitData()
+					}
+
+				}
 			} else {
-				tempDir := os.Getenv("DIRPROJECTS") + "/temp/"
-				os.Mkdir(tempDir, os.FileMode(0755))
-				cmd := exec.Command("unzip", newFile, "-d", tempDir)
-				cmd.Run()
-				filesInfo, _ := ioutil.ReadDir(tempDir)
-				fileIfNotExist := true
-				for i := 0; i < len(filesInfo); i++ {
-					name := filesInfo[i].Name()
-					if strings.Contains(name, ".jmx") {
-						fileIfNotExist = false
-						os.Mkdir(tempDir, os.FileMode(0755))
-						file, err := os.Open(tempDir + name)
-						defer file.Close()
-						byteValue, _ := ioutil.ReadAll(file)
-						var testplan jmxparser.JmeterTestPlan
-						xml.Unmarshal(byteValue, &testplan)
-						tgParams, err := testplan.GetTreadGroupsParams(byteValue)
-						if err != nil {
-							err = os.RemoveAll(tempDir)
-							w.WriteHeader(http.StatusInternalServerError)
-							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-						} else {
-							l := len(tgParams)
-							for i := 0; i < l; i++ {
-								var tg scenario.ThreadGroup
-								tg.ThreadGroupName = tgParams[i].ThreadGroupName
-								for _, v := range tgParams[i].ThreadGroupParams {
-									params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
-									tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
-								}
-								s.ThreadGroups = append(s.ThreadGroups, tg)
-							}
-							err = os.RemoveAll(tempDir)
+				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
+				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
+				defer f.Close()
+				_, err = io.Copy(f, file)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					tempDir := os.Getenv("DIRPROJECTS") + "/temp/"
+					os.Mkdir(tempDir, os.FileMode(0755))
+					cmd := exec.Command("unzip", newFile, "-d", tempDir)
+					cmd.Run()
+					filesInfo, _ := ioutil.ReadDir(tempDir)
+					fileIfNotExist := true
+					for i := 0; i < len(filesInfo); i++ {
+						name := filesInfo[i].Name()
+						if strings.Contains(name, ".jmx") {
+							fileIfNotExist = false
+							os.Mkdir(tempDir, os.FileMode(0755))
+							file, err := os.Open(tempDir + name)
+							defer file.Close()
+							byteValue, _ := ioutil.ReadAll(file)
+							var testplan jmxparser.JmeterTestPlan
+							xml.Unmarshal(byteValue, &testplan)
+							tgParams, err := testplan.GetTreadGroupsParams(byteValue)
 							if err != nil {
+								err = os.RemoveAll(tempDir)
 								w.WriteHeader(http.StatusInternalServerError)
 								w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 							} else {
-								err = s.InsertToDB()
+								l := len(tgParams)
+								for i := 0; i < l; i++ {
+									var tg scenario.ThreadGroup
+									tg.ThreadGroupName = tgParams[i].ThreadGroupName
+									tg.ThreadGroupType = tgParams[i].ThreadGroupType
+									for _, v := range tgParams[i].ThreadGroupParams {
+										params := scenario.ThreadGroupParams{Type: v.Type, Name: v.Name, Value: v.Value}
+										tg.ThreadGroupParams = append(tg.ThreadGroupParams, params)
+									}
+									s.ThreadGroups = append(s.ThreadGroups, tg)
+								}
+								err = os.RemoveAll(tempDir)
 								if err != nil {
 									w.WriteHeader(http.StatusInternalServerError)
 									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 								} else {
-									w.WriteHeader(http.StatusOK)
-									w.Write([]byte("{\"Message\":\"Create done\"}"))
-									scn.InitData()
-									break
+									err = s.InsertToDB()
+									if err != nil {
+										w.WriteHeader(http.StatusInternalServerError)
+										w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+									} else {
+										w.WriteHeader(http.StatusOK)
+										w.Write([]byte("{\"Message\":\"Create done\"}"))
+										scn.InitData()
+										break
+									}
 								}
 							}
 						}
-
 					}
-				}
-				if fileIfNotExist {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\": not found jmx file}"))
+					if fileIfNotExist {
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("{\"Message\": not found jmx file}"))
+					}
 				}
 			}
 		}
@@ -379,7 +422,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		splitToken := strings.Split(authHeader, "Bearer ")
 		authHeader = strings.TrimSpace(splitToken[1])
-		tempParseDir := os.Getenv("DIRPROJECTS") + "/tempParseDir/" // + authHeader //+ "/"
+		tempParseDir := os.Getenv("DIRPROJECTS") + "/tempParseDir/"
 		err = os.Mkdir(tempParseDir, os.FileMode(0755))
 		if err != nil {
 			if os.IsExist(err) {
@@ -449,7 +492,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				if fileIfNotExist {
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusNoContent)
 					w.Write([]byte("{\"Message\": not found jmx file}"))
 				}
 			} else {
@@ -457,6 +500,5 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			}
 		}
-
 	}
 }
