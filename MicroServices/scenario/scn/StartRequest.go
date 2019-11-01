@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
@@ -112,15 +113,37 @@ func (s *StartRequest) Start() error {
 			}
 		}
 	}
-	var duration int64
+	allDuration := make([]int64, 0, len(s.Params))
 	for _, v := range s.Params {
-		for _, v1 := range v.ThreadGroupParams {
-			if v1.Type == "Hold" || v1.Type == "Duration" {
-				d, _ := strconv.Atoi(v1.Value)
-				duration = int64(d)
+		switch v.ThreadGroupType {
+		case "DefaultThreadGroup":
+			for _, v1 := range v.ThreadGroupParams {
+				if v1.Type == "Hold" || v1.Type == "Duration" {
+					d, _ := strconv.Atoi(v1.Value)
+					allDuration = append(allDuration, int64(d*60))
+				}
 			}
+		case "BlazemeterConcurrencyThreadGroup":
+			var steps int64
+			var rampup int64
+			var duration int64
+			for _, v1 := range v.ThreadGroupParams {
+				switch v1.Type {
+				case "RampUp":
+					d, _ := strconv.Atoi(v1.Value)
+					rampup = int64(d * 60)
+				case "Steps":
+					d, _ := strconv.Atoi(v1.Value)
+					steps = int64(d * 60)
+				case "Duration":
+					d, _ := strconv.Atoi(v1.Value)
+					duration = int64(d * 60)
+				}
+			}
+			allDuration = append(allDuration, rampup*steps+duration)
 		}
 	}
-	SetState(true, runid, s.Name, s.Type, duration, s.Gun, s.Generators)
+	sort.Slice(allDuration, func(i, j int) bool { return allDuration[i] > allDuration[j] })
+	SetState(true, runid, s.Name, s.Type, allDuration[0], s.Gun, s.Generators)
 	return err
 }
