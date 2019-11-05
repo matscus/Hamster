@@ -1,8 +1,6 @@
 package scn
 
 import (
-	"mime/multipart"
-
 	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
 )
 
@@ -11,6 +9,6 @@ type PreParseResponce struct {
 	FailedParams    []string `json:"FailedParams"`
 }
 type ScriptCache struct {
-	ScriptFile  multipart.File
+	ScriptFile  []byte
 	ParseParams []jmxparser.JMXParserResponse
 }
