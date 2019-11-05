@@ -15,9 +15,11 @@ import (
 
 //User - struct for user, contains username, passowd (in base64) and JWT
 type User struct {
-	ID       int64
-	User     string
-	Password string
+	ID       int64    `json:id`
+	User     string   `json:user`
+	Password string   `json:password,omitempty`
+	Role     string   `json:"role"`
+	Projects []string `json:"projects"`
 	jwt.StandardClaims
 }
 

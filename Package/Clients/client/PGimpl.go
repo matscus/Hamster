@@ -331,3 +331,21 @@ func (c PGClient) GetUsersAndHosts() (map[string]string, error) {
 	}
 	return res, nil
 }
+
+//GetAllUsers - func return all users
+func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
+	var rows *sql.Rows
+	str := "select id,users,role,projects from users"
+	rows, err := db.Query(str)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]subset.AllUser, 0, 20)
+	for rows.Next() {
+		u := subset.AllUser{}
+		rows.Scan(&u.ID, &u.User, &u.Role, pq.Array(&u.Projects))
+		u.Password = "so that the password is not stored in clear text, use https(с) Programmer of Mail.ru Group"
+		res = append(res, u)
+	}
+	return res, nil
+}
