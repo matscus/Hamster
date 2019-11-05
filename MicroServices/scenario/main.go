@@ -43,7 +43,7 @@ func main() {
 	r.HandleFunc("/api/v1/scenario/new", middleware.Middleware(handlers.NewScenario)).Methods("POST", "OPTIONS")
 	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.GetData)).Methods("GET", "OPTIONS").Queries("project", "{project}")
 	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.UpdateData)).Methods("PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods("GET", "OPTIONS").Queries("name", "{name}")
+	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods("GET", "OPTIONS").Queries("name", "{name}", "project", "{project}")
 	r.HandleFunc("/api/v1/scenario/ws", handlers.Ws)
 	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", handlers.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods("GET", "OPTIONS") //.Headers("Content-Type", "application/json")
 	r.HandleFunc("/api/v1/scenario/precheck", middleware.Middleware(handlers.PreCheckScenario)).Methods("POST", "OPTIONS")
