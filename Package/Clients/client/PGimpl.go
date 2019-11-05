@@ -99,11 +99,10 @@ func (c PGClient) UpdateServiceWithRunSTR(id int64, name string, host string, ur
 }
 
 //SetStartTest - insert scenario values to table runs at start scenario
-func (c PGClient) SetStartTest(runID string, testName string, testType string) error {
+func (c PGClient) SetStartTest(testName string, testType string) error {
 	t := time.Now().Unix()
 	timestamp := strconv.FormatInt(t, 10)
-	id, _ := strconv.Atoi(runID)
-	_, err := db.Exec("insert into runs (id,run_id,test_name,test_type,start_time,stop_time,status,comment,state) values ($1,$2,$3,$4,to_timestamp($5),to_timestamp(0),'','','')", id, runID, testName, testType, timestamp)
+	_, err := db.Exec("insert into runs (test_name,test_type,start_time,stop_time,status,comment,state) values ($1,$2,$3,$4,to_timestamp($5),to_timestamp(0),'','','')", testName, testType, timestamp)
 	if err != err {
 		return err
 	}

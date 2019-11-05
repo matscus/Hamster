@@ -225,13 +225,14 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			if ok {
 				scripts := cacheScripts.(scn.ScriptCache)
 				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
-				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				}
-				defer f.Close()
-				_, err = io.Copy(f, file)
+				// f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+				// if err != nil {
+				// 	w.WriteHeader(http.StatusInternalServerError)
+				// 	w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				// }
+				// defer f.Close()
+				// _, err = io.Copy(f, file)
+				err := ioutil.WriteFile(newFile, scripts.ScriptFile, os.FileMode(0755))
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -414,11 +415,13 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 //PreCheckScenario - handle to rpe check scenario file, if mandatory thread groups params is nil, return fasle.
 func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("uploadFile")
+	bytesFile := make([]byte, 0, 0)
 	defer file.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
+		file.Read(bytesFile)
 		authHeader := r.Header.Get("Authorization")
 		splitToken := strings.Split(authHeader, "Bearer ")
 		authHeader = strings.TrimSpace(splitToken[1])
@@ -475,7 +478,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 								}
 							}
 							if len(prepaseResponce) == 0 {
-								cache.Set(fileName, scn.ScriptCache{ScriptFile: file, ParseParams: tgParams}, 1*time.Minute)
+								cache.Set(fileName, scn.ScriptCache{ScriptFile: bytesFile, ParseParams: tgParams}, 1*time.Minute)
 								os.RemoveAll(tempParseDir)
 								w.WriteHeader(http.StatusOK)
 								w.Write([]byte("{\"Message\":\"script structure complies with the standard \"}"))

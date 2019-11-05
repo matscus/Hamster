@@ -5,7 +5,7 @@ type PGClient interface {
 	//runs
 	GetLastRunID() (runID int64, err error)
 	GetNewRunID() (runID int64, err error)
-	SetStartTest(runID string, testName string, testType string) error
+	SetStartTest(testName string, testType string) error
 	SetStopTest(runID string) error
 	//services
 	NewService(id int64, name string, host string, uri string, typeTest string, projects []string, runSTR string) (err error)
