@@ -80,7 +80,7 @@ func (s *StartRequest) Start() error {
 					str = str + "-J" + v1.Name + "=" + v1.Value + " "
 				}
 			}
-			str = str + "&> /dev/null"
+			str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
 			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 			err = pgclient.SetStartTest(s.Name, s.Type)
 			if err != nil {
@@ -103,13 +103,13 @@ func (s *StartRequest) Start() error {
 						}
 					}
 				}
-				str = str + "&> /dev/null"
+				str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
 				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
-				err = pgclient.SetStartTest(s.Name, s.Type)
-				if err != nil {
-					return err
-				}
 				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
+			}
+			err = pgclient.SetStartTest(s.Name, s.Type)
+			if err != nil {
+				return err
 			}
 		}
 	}
