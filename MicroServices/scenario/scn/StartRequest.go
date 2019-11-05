@@ -43,7 +43,7 @@ func (s *StartRequest) Start() error {
 				}
 			}
 			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
-			err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
+			err = pgclient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func (s *StartRequest) Start() error {
 						}
 					}
 				}
-				err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
+				err = pgclient.SetStartTest(s.Name, s.Type)
 				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
 				if err != nil {
 					return err
@@ -82,7 +82,7 @@ func (s *StartRequest) Start() error {
 			}
 			str = str + "&> /dev/null"
 			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
-			err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
+			err = pgclient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
 			}
@@ -105,7 +105,7 @@ func (s *StartRequest) Start() error {
 				}
 				str = str + "&> /dev/null"
 				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
-				err = pgclient.SetStartTest(strconv.FormatInt(runid, 10), s.Name, s.Type)
+				err = pgclient.SetStartTest(s.Name, s.Type)
 				if err != nil {
 					return err
 				}
