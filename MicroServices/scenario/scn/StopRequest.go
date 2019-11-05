@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
-	"github.com/matscus/Hamster/Package/Generators/generators"
+	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
 //StopRequest - struct request for stop scenario
 type StopRequest struct {
 	RunID      int64  `json:"runid"`
 	Gun        string `json:"gun"`
-	Generators []generators.Generator
+	Generators []hosts.Host
 }
 
 //Stop - func for the stop scenario

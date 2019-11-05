@@ -10,7 +10,7 @@ import (
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
-	"github.com/matscus/Hamster/Package/Generators/generators"
+	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
 //StartRequest - struct request for start scenario
@@ -19,7 +19,7 @@ type StartRequest struct {
 	Type       string   `json:"type"`
 	Gun        string   `json:"gun"`
 	Projects   []string `json:"projects"`
-	Generators []generators.Generator
+	Generators []hosts.Host
 	Params     []scenario.ThreadGroup
 }
 

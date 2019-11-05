@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	selectAllService    = "select id,name,host,uri,type,projects from service"
-	selectAllScenarios  = "select id, name,test_type,last_modified,gun_type,projects,params from scenarios;"
-	selectAllGenerators = "select id, host from generators"
+	selectAllService   = "select id,name,host,uri,type,projects from service"
+	selectAllScenarios = "select id, name,test_type,last_modified,gun_type,projects,params from scenarios;"
+	//selectAllGenerators = "select id, host from generators"
+	selectAllGenerators = "select id, ip from hosts where host_type='generator'"
 	selectServiceRunSTR = "select runstr from service where id=$1"
 	deleteService       = "delete service where id=$1"
 	selectUserForHosts  = "select ip,users from hosts"
@@ -249,24 +250,24 @@ func (c PGClient) GetAllGenerators() ([][]string, error) {
 
 //GetLastGeneratorsID - return last generator id
 func (c PGClient) GetLastGeneratorsID() (ID int64, err error) {
-	db.QueryRow("select max(id) from generators").Scan(&ID)
+	db.QueryRow("select max(id) from hosts where host_type=generator").Scan(&ID)
 	return ID, err
 }
 
-//NewGenerator - insert new generators from database
-func (c PGClient) NewGenerator(id int64, host string, projects []string) (err error) {
+//NewHost - insert new generators from database
+func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("insert into generators(id,host,projects)values($1,$2,$3)", id, host, projectstr)
+	_, err = db.Exec("insert into hosts (ip,host_type,users,projects)values($1,$2,$3,$4)", ip, host_type, user, projectstr)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//UpdateGenerator - update generator values to table  scenarios
-func (c PGClient) UpdateGenerator(id int64, host string, projects []string) (err error) {
+//UpdateHost - update generator values to table  scenarios
+func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE generators SET host = $1,SET projects=$2 where id= $3", host, projectstr, id)
+	_, err = db.Exec("UPDATE hosts SET ip = $1,SET host_type=$2,SET Users=$3, projects=$4 where id= $5", ip, host_type, user, projectstr, id)
 	if err != nil {
 		return err
 	}

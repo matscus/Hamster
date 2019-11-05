@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
-	"github.com/matscus/Hamster/Package/Generators/generators"
+	"github.com/matscus/Hamster/Package/Hosts/hosts"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
 )
 
 var (
-	//GetResponseAllData - struct for return information if scenarios and generators.
+	//GetResponseAllData - struct for return information if scenarios and hosts.
 	GetResponseAllData = GetResponse{}
 	//GetState - struct for return state of scenario
 	GetState = []scenario.State{}
@@ -27,7 +27,7 @@ var (
 
 //GetResponse -  struct for response
 type GetResponse struct {
-	Generators []generators.Generator
+	Generators []hosts.Host
 	Scenarios  []scenario.Scenario
 }
 
@@ -69,9 +69,9 @@ func InitData() (err error) {
 		return err
 	}
 	l = len(gen)
-	GetResponseAllData.Generators = make([]generators.Generator, 0, l)
+	GetResponseAllData.Generators = make([]hosts.Host, 0, l)
 	for i := 0; i < l; i++ {
-		var g generators.Generator
+		var g hosts.Host
 		t := gen[i]
 		id, _ := strconv.Atoi(t[0])
 		g.ID = int64(id)
@@ -92,7 +92,7 @@ func InitData() (err error) {
 }
 
 //SetState -  init state struct for ws
-func SetState(s bool, id int64, n string, t string, d int64, gun string, g []generators.Generator) {
+func SetState(s bool, id int64, n string, t string, d int64, gun string, g []hosts.Host) {
 	if s {
 		starttime := (time.Now().Unix() - time.Unix(10800, 0).Unix())
 		endtime := (starttime + time.Unix(d, 0).Unix())
@@ -132,7 +132,7 @@ func СheckRun() (res bool) {
 }
 
 //CheckGen - func fo check state generators
-func CheckGen(g []generators.Generator) (res []GeneratorState, err error) {
+func CheckGen(g []hosts.Host) (res []hosts.Host, err error) {
 
 	l := len(g)
 	for i := 0; i < l; i++ {

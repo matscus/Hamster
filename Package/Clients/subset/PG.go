@@ -27,9 +27,10 @@ type PGClient interface {
 	GetAllGenerators() (generators [][]string, err error)
 	GetAllUserProject(user string) (projects []string, err error)
 	GetLastGeneratorsID() (ID int64, err error)
-	NewGenerator(id int64, host string, projects []string) (err error)
-	UpdateGenerator(id int64, host string, projects []string) (err error)
-	GetUserHash(user string) (hash string, err error)
-	//users and host
+	//hosts
+	NewHost(ip string, user string, host_type string, projects []string) (err error)
+	UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error)
+	//users
 	GetUsersAndHosts() (map[string]string, error)
+	GetUserHash(user string) (hash string, err error)
 }
