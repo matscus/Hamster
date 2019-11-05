@@ -33,4 +33,5 @@ type PGClient interface {
 	//users
 	GetUsersAndHosts() (map[string]string, error)
 	GetUserHash(user string) (hash string, err error)
+	GetAllUsers() ([]AllUser, error)
 }
