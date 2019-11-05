@@ -353,7 +353,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if len(runsgen) == 0 {
-			scn.LastRunsParams.Store(s.Name, s)
+			scn.LastRunsParams.Store(s.Name+s.Projects[0], s)
 			scn.RunsGenerators.Store(s.Name, s)
 			err = s.Start()
 			if err != nil {
@@ -390,22 +390,26 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	page, ok := params["name"]
 	if ok {
-		res, ок := scn.LastRunsParams.Load(page)
-		if ок {
-			params := res.(scn.StartRequest)
-			err := json.NewEncoder(w).Encode(params)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			nilres := scn.StartRequest{}
-			err := json.NewEncoder(w).Encode(nilres)
-			if err != nil {
-				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		lastParamName, ok := params["project"]
+		if ok {
+			res, ок := scn.LastRunsParams.Load(page + lastParamName)
+			if ок {
+				params := res.(scn.StartRequest)
+				err := json.NewEncoder(w).Encode(params)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
+			} else {
+				w.WriteHeader(http.StatusOK)
+				nilres := scn.StartRequest{}
+				err := json.NewEncoder(w).Encode(nilres)
+				if err != nil {
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				}
 			}
 		}
+
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\" params hot found \"}"))
