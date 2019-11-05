@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 )
 
 var (
