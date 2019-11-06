@@ -30,7 +30,6 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var token string
 	err = json.NewDecoder(r.Body).Decode(&user)
-	//err = easyjson.UnmarshalFromReader(r.Body, &user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -41,14 +40,30 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
-		token, err = u.NewTokenString()
+		ok, err := u.CheckPasswordExp()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("{\"Token\":\"" + token + "\"}"))
+			if ok {
+				token, err = u.NewTokenString(false)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("{\"Token\":\"" + token + "\"}"))
+				}
+			} else {
+				token, err = u.NewTokenString(true)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				} else {
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("{\"Token\":\"" + token + "\"}"))
+				}
+			}
 		}
 	}
 }
-
