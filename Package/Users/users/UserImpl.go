@@ -32,11 +32,11 @@ func (u *User) New() subset.User {
 
 //NewTokenString - func for generate and response new token
 func (u User) NewTokenString() (token string, err error) {
-	projects, err := client.PGClient{}.New().GetAllUserProject(u.User)
+	role, projects, err := client.PGClient{}.New().GetUserRoleAndProject(u.User)
 	if err != nil {
 		return "", err
 	}
-	token, err = jwttoken.Token{}.New().Generate(u.User, projects)
+	token, err = jwttoken.Token{}.New().Generate(role, u.User, projects)
 	if err != nil {
 		return "", err
 	}

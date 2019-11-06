@@ -19,9 +19,10 @@ func (t Token) New() subset.Token {
 	return token
 }
 
-func (t Token) Generate(user string, projects []string) (tokenstring string, err error) {
+func (t Token) Generate(role string, user string, projects []string) (tokenstring string, err error) {
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), jwt.MapClaims{
 		"user":    user,
+		"role":    role,
 		"project": projects,
 		"exp":     time.Now().Add(time.Hour * 12).Unix(),
 	})
@@ -50,6 +51,23 @@ func Parse(t string) bool {
 	})
 	if err == nil && token.Valid {
 		return true
+	}
+	return false
+}
+
+//IsAdmin - func to parse token and check to valid
+func IsAdmin(t string) bool {
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("KEY")), nil
+	})
+	if err == nil && token.Valid {
+		claims := token.Claims.(jwt.MapClaims)
+		role := claims["role"]
+		if role == "admin" {
+			return true
+		} else {
+			return false
+		}
 	}
 	return false
 }
