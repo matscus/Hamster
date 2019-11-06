@@ -19,12 +19,28 @@ func (t Token) New() subset.Token {
 	return token
 }
 
+//Generate - genereta default jwt
 func (t Token) Generate(role string, user string, projects []string) (tokenstring string, err error) {
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), jwt.MapClaims{
 		"user":    user,
 		"role":    role,
 		"project": projects,
 		"exp":     time.Now().Add(time.Hour * 12).Unix(),
+	})
+	tokenstring, err = token.SignedString([]byte(os.Getenv("KEY")))
+	if err != nil {
+		return tokenstring, err
+	}
+	return tokenstring, err
+}
+
+//GenerateTemp - genereta default jwt
+func (t Token) GenerateTemp(role string, user string, projects []string) (tokenstring string, err error) {
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), jwt.MapClaims{
+		"user":    user,
+		"role":    role,
+		"project": projects,
+		"exp":     time.Now().Add(time.Minute * 1).Unix(),
 	})
 	tokenstring, err = token.SignedString([]byte(os.Getenv("KEY")))
 	if err != nil {
