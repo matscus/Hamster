@@ -71,14 +71,6 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 	return hash, err
 }
 
-//GetAllUserProject - func to return all users project for front project models
-func (c PGClient) GetAllUserProject(user string) (projects []string, err error) {
-	if err := db.QueryRow("select projects from users where users=$1", user).Scan(pq.Array(&projects)); err != nil {
-		return projects, err
-	}
-	return projects, nil
-}
-
 //UpdateServiceWithOutRunSTR - update service values in database wothout string for run service
 func (c PGClient) UpdateServiceWithOutRunSTR(id int64, name string, host string, uri string, typeTest string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
@@ -348,4 +340,33 @@ func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
 		res = append(res, u)
 	}
 	return res, nil
+}
+
+//NewUser - func create new users
+func (c PGClient) NewUser(users string, password string, role string, projects []string) error {
+	projectstr := "{" + strings.Join(projects, ",") + "}"
+	_, err := db.Exec("insert into users(users,password,role,projects)values($1,$2,$3,$4)", users, password, role, projectstr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//NewUser - func create new users
+func (c PGClient) UserNameIfExist(users string) (bool, error) {
+	var tempUser string
+	err := db.QueryRow("select users from users where id=&1", users).Scan(&tempUser)
+	if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
+}
+
+//GetUserRoleAndProject - func to return all users role and  project for front project and role models
+func (c PGClient) GetUserRoleAndProject(user string) (role string, projects []string, err error) {
+	if err := db.QueryRow("select role,projects from users where users=$1", user).Scan(&role, pq.Array(&projects)); err != nil {
+		return role, projects, err
+	}
+	return role, projects, nil
 }

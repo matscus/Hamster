@@ -25,7 +25,6 @@ type PGClient interface {
 	DeleteScenario(id int64) (err error)
 	//Generators
 	GetAllGenerators() (generators [][]string, err error)
-	GetAllUserProject(user string) (projects []string, err error)
 	GetLastGeneratorsID() (ID int64, err error)
 	//hosts
 	NewHost(ip string, user string, host_type string, projects []string) (err error)
@@ -34,4 +33,7 @@ type PGClient interface {
 	GetUsersAndHosts() (map[string]string, error)
 	GetUserHash(user string) (hash string, err error)
 	GetAllUsers() ([]AllUser, error)
+	NewUser(users string, password string, role string, projects []string) error
+	UserNameIfExist(users string) (bool, error)
+	GetUserRoleAndProject(user string) (role string, projects []string, err error)
 }
