@@ -128,47 +128,41 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 			s.Type = r.FormValue("scenarioType")
 			s.Gun = r.FormValue("gun")
 			s.Projects = []string{r.FormValue("project")}
-			ifExist, _ := s.CheckScenario()
-			if ifExist {
+			oldname, err := s.GetNameForID()
+			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("{\"Message\":\"dublicate scenario name in the project\"}"))
+				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
-				oldname, err := s.GetNameForID()
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+				os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip")
+				r.ParseMultipartForm(32 << 20)
+				file, _, _ := r.FormFile("uploadFile")
+				if file == nil {
+					s.Update()
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("{\"Message\":\"update done\"}"))
+					scn.InitData()
 				} else {
-					os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip")
-					r.ParseMultipartForm(32 << 20)
-					file, _, _ := r.FormFile("uploadFile")
-					if file == nil {
-						s.Update()
-						w.WriteHeader(http.StatusOK)
-						w.Write([]byte("{\"Message\":\"update done\"}"))
-						scn.InitData()
+					defer file.Close()
+					f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+					}
+					defer f.Close()
+					_, err = io.Copy(f, file)
+					if err != nil {
+						err = s.Update()
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 					} else {
-						defer file.Close()
-						f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+						err = s.Update()
 						if err != nil {
-							w.WriteHeader(http.StatusInternalServerError)
-							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-						}
-						defer f.Close()
-						_, err = io.Copy(f, file)
-						if err != nil {
-							err = s.Update()
 							w.WriteHeader(http.StatusInternalServerError)
 							w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 						} else {
-							err = s.Update()
-							if err != nil {
-								w.WriteHeader(http.StatusInternalServerError)
-								w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-							} else {
-								w.WriteHeader(http.StatusOK)
-								w.Write([]byte("{\"Message\":\"update done\"}"))
-								scn.InitData()
-							}
+							w.WriteHeader(http.StatusOK)
+							w.Write([]byte("{\"Message\":\"update done\"}"))
+							scn.InitData()
 						}
 					}
 				}
