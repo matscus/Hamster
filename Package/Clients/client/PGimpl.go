@@ -71,6 +71,15 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 	return hash, err
 }
 
+//GetUserPasswordExp - return user password expiration
+func (c PGClient) GetUserPasswordExp(user string) (exp string, err error) {
+	err = db.QueryRow("select password_expiration from users where users=$1", user).Scan(&exp)
+	if err != nil {
+		return exp, err
+	}
+	return exp, nil
+}
+
 //UpdateServiceWithOutRunSTR - update service values in database wothout string for run service
 func (c PGClient) UpdateServiceWithOutRunSTR(id int64, name string, host string, uri string, typeTest string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
@@ -345,7 +354,8 @@ func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
 //NewUser - func create new users
 func (c PGClient) NewUser(users string, password string, role string, projects []string) error {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err := db.Exec("insert into users(users,password,role,projects)values($1,$2,$3,$4)", users, password, role, projectstr)
+	t := time.Now().Unix()
+	_, err := db.Exec("insert into users(users,password,password_expiration,role,projects)values($1,$2,to_timestamp($3),$4,$5)", users, password, t, role, projectstr)
 	if err != nil {
 		return err
 	}

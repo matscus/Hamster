@@ -32,6 +32,7 @@ type PGClient interface {
 	//users
 	GetUsersAndHosts() (map[string]string, error)
 	GetUserHash(user string) (hash string, err error)
+	GetUserPasswordExp(user string) (exp string, err error)
 	GetAllUsers() ([]AllUser, error)
 	NewUser(users string, password string, role string, projects []string) error
 	UserNameIfExist(users string) (bool, error)
