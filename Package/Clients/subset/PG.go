@@ -37,4 +37,6 @@ type PGClient interface {
 	NewUser(users string, password string, role string, projects []string) error
 	UserNameIfExist(users string) (bool, error)
 	GetUserRoleAndProject(user string) (role string, projects []string, err error)
+	UpdateUser(id string, password string, role string, projects []string) error
+	DeleteUser(user string) (err error)
 }

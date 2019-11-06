@@ -71,6 +71,15 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 	return hash, err
 }
 
+//DeleteUser - delete user
+func (c PGClient) DeleteUser(user string) (err error) {
+	_, err = db.Exec("delete users where id=$1", user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //GetUserPasswordExp - return user password expiration
 func (c PGClient) GetUserPasswordExp(user string) (exp string, err error) {
 	err = db.QueryRow("select password_expiration from users where users=$1", user).Scan(&exp)
@@ -356,6 +365,17 @@ func (c PGClient) NewUser(users string, password string, role string, projects [
 	projectstr := "{" + strings.Join(projects, ",") + "}"
 	t := time.Now().Unix()
 	_, err := db.Exec("insert into users(users,password,password_expiration,role,projects)values($1,$2,to_timestamp($3),$4,$5)", users, password, t, role, projectstr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateUser - func update  users
+func (c PGClient) UpdateUser(id string, password string, role string, projects []string) error {
+	projectstr := "{" + strings.Join(projects, ",") + "}"
+	t := time.Now().Unix()
+	_, err := db.Exec("update users set password=$1,set password_expiration=to_timestamp($2),set role=$3,set projects=$4 where id=$5", password, t, role, projectstr, id)
 	if err != nil {
 		return err
 	}
