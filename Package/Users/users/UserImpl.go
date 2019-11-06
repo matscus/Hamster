@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/matscus/Hamster/Package/Clients/client"
@@ -31,14 +32,22 @@ func (u *User) New() subset.User {
 }
 
 //NewTokenString - func for generate and response new token
-func (u User) NewTokenString() (token string, err error) {
+func (u User) NewTokenString(temp bool) (token string, err error) {
 	role, projects, err := client.PGClient{}.New().GetUserRoleAndProject(u.User)
 	if err != nil {
 		return "", err
-	}
-	token, err = jwttoken.Token{}.New().Generate(role, u.User, projects)
-	if err != nil {
-		return "", err
+	} else {
+		if temp {
+			token, err = jwttoken.Token{}.New().GenerateTemp(role, u.User, projects)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			token, err = jwttoken.Token{}.New().Generate(role, u.User, projects)
+			if err != nil {
+				return "", err
+			}
+		}
 	}
 	return token, err
 }
@@ -53,6 +62,21 @@ func (u *User) CheckUser() (res bool, err error) {
 	}
 	err = errors.New("check user fail")
 	return false, err
+}
+
+//CheckUser - func for check PasswordExp (for )validation of user token)
+func (u *User) CheckPasswordExp() (res bool, err error) {
+	exp, err := client.PGClient{}.New().GetUserPasswordExp(u.User)
+	t, _ := time.Parse(time.RFC3339, exp)
+	if t.Unix() == 0 {
+		return true, nil
+	} else {
+		if time.Now().Unix() > t.Unix() {
+			return false, err
+		} else {
+			return true, err
+		}
+	}
 }
 
 func compareHash(hash string, password []byte) bool {
