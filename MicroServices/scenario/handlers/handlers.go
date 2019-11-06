@@ -422,7 +422,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 	bytesFile := make([]byte, 0, 0)
 	defer file.Close()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
 		file.Read(bytesFile)
@@ -439,13 +439,13 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 				newFile := tempParseDir + fileName
 				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusOK)
 					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 				}
 				defer f.Close()
 				_, err = io.Copy(f, file)
 				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusOK)
 					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 				}
 				cmd := exec.Command("unzip", newFile, "-d", tempParseDir)
@@ -488,10 +488,10 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 								w.Write([]byte("{\"Message\":\"script structure complies with the standard \"}"))
 							} else {
 								os.RemoveAll(tempParseDir)
-								w.WriteHeader(http.StatusInternalServerError)
+								w.WriteHeader(http.StatusOK)
 								err := json.NewEncoder(w).Encode(prepaseResponce)
 								if err != nil {
-									w.WriteHeader(http.StatusInternalServerError)
+									w.WriteHeader(http.StatusOK)
 									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 								}
 							}
