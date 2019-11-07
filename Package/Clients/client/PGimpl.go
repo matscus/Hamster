@@ -71,15 +71,6 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 	return hash, err
 }
 
-//DeleteUser - delete user
-func (c PGClient) DeleteUser(user string) (err error) {
-	_, err = db.Exec("delete users where id=$1", user)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 //GetUserPasswordExp - return user password expiration
 func (c PGClient) GetUserPasswordExp(user string) (exp string, err error) {
 	err = db.QueryRow("select password_expiration from users where users=$1", user).Scan(&exp)
@@ -264,26 +255,6 @@ func (c PGClient) GetLastGeneratorsID() (ID int64, err error) {
 	return ID, err
 }
 
-//NewHost - insert new generators from database
-func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("insert into hosts (ip,host_type,users,projects)values($1,$2,$3,$4)", ip, host_type, user, projectstr)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//UpdateHost - update generator values to table  scenarios
-func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE hosts SET ip = $1,SET host_type=$2,SET Users=$3, projects=$4 where id= $5", ip, host_type, user, projectstr, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 //GetServiceRunSTR - update generator values to table  scenarios
 func (c PGClient) GetServiceRunSTR(id int64) (runSTR string, err error) {
 	var rows *sql.Rows
@@ -345,8 +316,7 @@ func (c PGClient) GetUsersAndHosts() (map[string]string, error) {
 //GetAllUsers - func return all users
 func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
 	var rows *sql.Rows
-	str := "select id,users,role,projects from users"
-	rows, err := db.Query(str)
+	rows, err := db.Query("select id,users,role,projects from users")
 	if err != nil {
 		return nil, err
 	}
@@ -372,10 +342,29 @@ func (c PGClient) NewUser(users string, password string, role string, projects [
 }
 
 //UpdateUser - func update  users
-func (c PGClient) UpdateUser(id string, password string, role string, projects []string) error {
+func (c PGClient) UpdateUser(id int64, password string, role string, projects []string) error {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
+	t := time.Now().Add(2880 * time.Hour).Unix()
+	_, err := db.Exec("update  users set password_expiration=to_timestamp($1), role=$2, projects=$3 where id=$4", t, role, projectstr, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteUser - delete user
+func (c PGClient) DeleteUser(id int64) (err error) {
+	_, err = db.Exec("delete from users where id=$1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//ChangeUserPassword - delete user
+func (c PGClient) ChangeUserPassword(id int64, password string) (err error) {
 	t := time.Now().Unix()
-	_, err := db.Exec("update users set password=$1,set password_expiration=to_timestamp($2),set role=$3,set projects=$4 where id=$5", password, t, role, projectstr, id)
+	_, err = db.Exec("update users set password=$1, password_expiration=to_timestamp($2) where id=$3", password, t, id)
 	if err != nil {
 		return err
 	}
@@ -383,9 +372,9 @@ func (c PGClient) UpdateUser(id string, password string, role string, projects [
 }
 
 //NewUser - func create new users
-func (c PGClient) UserNameIfExist(users string) (bool, error) {
+func (c PGClient) UserNameIfExist(username string) (bool, error) {
 	var tempUser string
-	err := db.QueryRow("select users from users where id=&1", users).Scan(&tempUser)
+	err := db.QueryRow("select users from users where users=$1", username).Scan(&tempUser)
 	if err != nil {
 		return false, err
 	} else {
@@ -399,4 +388,60 @@ func (c PGClient) GetUserRoleAndProject(user string) (role string, projects []st
 		return role, projects, err
 	}
 	return role, projects, nil
+}
+
+//GetAllHosts - func return all hosts
+func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select id,ip,host_type,users,projects from hosts")
+	if err != nil {
+		return nil, err
+	}
+	res := make([]subset.AllHost, 0, 20)
+	for rows.Next() {
+		h := subset.AllHost{}
+		rows.Scan(&h.ID, &h.Host, &h.Type, &h.User, pq.Array(&h.Projects))
+		res = append(res, h)
+	}
+	return res, nil
+}
+
+//NewHost - insert new generators from database
+func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
+	projectstr := "{" + strings.Join(projects, ",") + "}"
+	_, err = db.Exec("insert into hosts (ip,host_type,users,projects)values($1,$2,$3,$4)", ip, host_type, user, projectstr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateHost - update generator values to table  scenarios
+func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error) {
+	projectstr := "{" + strings.Join(projects, ",") + "}"
+	_, err = db.Exec("UPDATE hosts SET ip = $1 host_type=$2 Users=$3, projects=$4 where id= $5", ip, host_type, user, projectstr, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteHost - delete host
+func (c PGClient) DeleteHost(id int64) (err error) {
+	_, err = db.Exec("delete from hosts where id=$1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//HostIfExist - chacke host, is exist return true
+func (c PGClient) HostIfExist(ip string) (bool, error) {
+	var tempHost string
+	err := db.QueryRow("select ip from hosts where ip=$1", ip).Scan(&tempHost)
+	if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
 }

@@ -27,8 +27,11 @@ type PGClient interface {
 	GetAllGenerators() (generators [][]string, err error)
 	GetLastGeneratorsID() (ID int64, err error)
 	//hosts
+	GetAllHosts() ([]AllHost, error)
+	HostIfExist(ip string) (bool, error)
 	NewHost(ip string, user string, host_type string, projects []string) (err error)
 	UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error)
+	DeleteHost(id int64) (err error)
 	//users
 	GetUsersAndHosts() (map[string]string, error)
 	GetUserHash(user string) (hash string, err error)
@@ -37,6 +40,7 @@ type PGClient interface {
 	NewUser(users string, password string, role string, projects []string) error
 	UserNameIfExist(users string) (bool, error)
 	GetUserRoleAndProject(user string) (role string, projects []string, err error)
-	UpdateUser(id string, password string, role string, projects []string) error
-	DeleteUser(user string) (err error)
+	UpdateUser(id int64, password string, role string, projects []string) error
+	DeleteUser(user int64) (err error)
+	ChangeUserPassword(id int64, password string) (err error)
 }
