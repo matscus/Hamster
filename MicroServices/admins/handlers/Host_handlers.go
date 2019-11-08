@@ -31,10 +31,9 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
-		client := client.PGClient{}.New()
 		switch r.Method {
 		case "POST":
-			ok, err := client.HostIfExist(host.Host)
+			ok, err := host.IfExist()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -43,7 +42,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("{\"Message\": Host is exist }"))
 				} else {
-					err = client.NewHost(host.Host, host.User, host.Type, host.Projects)
+					err = host.Create()
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -54,7 +53,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case "PUT":
-			err = client.UpdateHost(host.ID, host.Host, host.User, host.Type, host.Projects)
+			err = host.Update()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -63,7 +62,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"Host updated \"}"))
 			}
 		case "DELETE":
-			err = client.DeleteHost(host.ID)
+			err = host.Delete()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -71,18 +70,6 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("{\"Message\":\"Host deleted \"}"))
 			}
-		}
-	}
-
-	allhosts, err := client.PGClient{}.New().GetAllHosts()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-	} else {
-		err := json.NewEncoder(w).Encode(allhosts)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		}
 	}
 }
