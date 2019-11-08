@@ -46,7 +46,7 @@ func (s *Service) Stop(user string) error {
 }
 
 //InsertToDB - insert new generator to database
-func (s *Service) InsertToDB() error {
+func (s *Service) Create() error {
 	pgclient := client.PGClient{}.New()
 	id, err := pgclient.GetLastServiceID()
 	if err != nil {

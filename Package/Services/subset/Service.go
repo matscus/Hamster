@@ -1,7 +1,7 @@
 package subset
 
 type Service interface {
-	InsertToDB() (err error)
+	Create() error
 	Run(user string) error
 	Stop(user string) error
 	Update() error
