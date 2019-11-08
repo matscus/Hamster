@@ -11,7 +11,7 @@ import (
 
 	"github.com/matscus/Hamster/MicroServices/service/serv"
 	"github.com/matscus/Hamster/Package/Clients/client"
-	"github.com/matscus/Hamster/Package/Generators/generators"
+	"github.com/matscus/Hamster/Package/Hosts/hosts"
 	"github.com/matscus/Hamster/Package/Services/service"
 )
 
@@ -188,7 +188,7 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 //NewOrUpdateGenerator - new or update generator func(new - method post, update - method put)
 func NewOrUpdateGenerator(w http.ResponseWriter, r *http.Request) {
-	g := generators.Generator{}
+	g := hosts.Host{}
 	err := json.NewEncoder(w).Encode(g)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -202,9 +202,9 @@ func NewOrUpdateGenerator(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		}
 		l := len(gen)
-		temp := make([]generators.Generator, 0, l)
+		temp := make([]hosts.Host, 0, l)
 		for i := 0; i < l; i++ {
-			var g generators.Generator
+			var g hosts.Host
 			t := gen[i]
 			id, _ := strconv.Atoi(t[0])
 			g.ID = int64(id)
@@ -217,13 +217,13 @@ func NewOrUpdateGenerator(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		}
 	case "POST":
-		err = g.InsertToDB()
+		err = g.Create()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 		}
 	case "PUT":
-		err = g.UpdateGenerator()
+		err = g.Update()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
