@@ -1,10 +1,7 @@
 package handlers
 
 import (
-	"crypto/sha256"
-	b64 "encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
@@ -34,10 +31,9 @@ func Users(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
-		client := client.PGClient{}.New()
 		switch r.Method {
 		case "POST":
-			ok, err := client.UserNameIfExist(user.User)
+			ok, err := user.IfExist()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -46,7 +42,7 @@ func Users(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("{\"Message\": User name is exist }"))
 				} else {
-					err = client.NewUser(user.User, user.Password, user.Role, user.Projects)
+					err = user.Create()
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -57,7 +53,7 @@ func Users(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case "PUT":
-			err := client.UpdateUser(user.ID, user.Password, user.Role, user.Projects)
+			err := user.Update()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -66,8 +62,8 @@ func Users(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"User updated \"}"))
 			}
 		case "DELETE":
-			if user.ID != 0 {
-				err := client.DeleteUser(user.ID)
+			if user.ID != 1 {
+				err := user.Delete()
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -91,11 +87,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	} else {
-		client := client.PGClient{}.New()
-		h := sha256.New()
-		pass, err := b64.StdEncoding.DecodeString(user.Password)
-		h.Write([]byte(pass))
-		err = client.ChangeUserPassword(user.ID, fmt.Sprintf("%x", h.Sum(nil)))
+		err = user.ChangePassword()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
