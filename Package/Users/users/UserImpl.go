@@ -79,6 +79,43 @@ func (u *User) CheckPasswordExp() (res bool, err error) {
 	}
 }
 
+// IfExist - check users, is exist return true
+func (u *User) IfExist() (bool, error) {
+	return client.PGClient{}.New().UserNameIfExist(u.User)
+}
+
+//Create - create new user and insert data to database
+func (u *User) Create() error {
+	h := sha256.New()
+	pass, err := b64.StdEncoding.DecodeString(u.Password)
+	if err != nil {
+		return err
+	}
+	h.Write([]byte(pass))
+	return client.PGClient{}.New().NewUser(u.User, fmt.Sprintf("%x", h.Sum(nil)), u.Role, u.Projects)
+}
+
+//Update - update user data
+func (u *User) Update() error {
+	return client.PGClient{}.New().UpdateUser(u.ID, u.Password, u.Role, u.Projects)
+}
+
+//Delete -delete user
+func (u *User) Delete() error {
+	return client.PGClient{}.New().DeleteUser(u.ID)
+}
+
+//ChangePassword - change user password
+func (u *User) ChangePassword() error {
+	client := client.PGClient{}.New()
+	h := sha256.New()
+	pass, err := b64.StdEncoding.DecodeString(u.Password)
+	if err != nil {
+		return err
+	}
+	h.Write([]byte(pass))
+	return client.ChangeUserPassword(u.ID, fmt.Sprintf("%x", h.Sum(nil)))
+}
 func compareHash(hash string, password []byte) bool {
 	h := sha256.New()
 	h.Write(password)
