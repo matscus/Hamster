@@ -43,4 +43,16 @@ type PGClient interface {
 	UpdateUser(id int64, password string, role string, projects []string) error
 	DeleteUser(user int64) (err error)
 	ChangeUserPassword(id int64, password string) (err error)
+	//projects
+	GetAllProjects() ([]AllProject, error)
+	NewProject(project string) (err error)
+	UpdateProject(id int64, project string) (err error)
+	DeleteProject(id int64) (err error)
+	ProjectIfExist(ip string) (bool, error)
+	//role
+	NewRole(role string) (err error)
+	UpdateRole(id int64, role string) (err error)
+	DeleteRole(id int64) (err error)
+	RoleIfExist(ip string) (bool, error)
+	GetAllRoles() ([]AllRoles, error)
 }

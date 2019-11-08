@@ -406,7 +406,7 @@ func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
 	return res, nil
 }
 
-//NewHost - insert new generators from database
+//NewHost - insert new host from database
 func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
 	_, err = db.Exec("insert into hosts (ip,host_type,users,projects)values($1,$2,$3,$4)", ip, host_type, user, projectstr)
@@ -416,7 +416,7 @@ func (c PGClient) NewHost(ip string, user string, host_type string, projects []s
 	return nil
 }
 
-//UpdateHost - update generator values to table  scenarios
+//UpdateHost - update host values to table  scenarios
 func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error) {
 	projectstr := "{" + strings.Join(projects, ",") + "}"
 	_, err = db.Exec("UPDATE hosts SET ip = $1 host_type=$2 Users=$3, projects=$4 where id= $5", ip, host_type, user, projectstr, id)
@@ -444,4 +444,112 @@ func (c PGClient) HostIfExist(ip string) (bool, error) {
 	} else {
 		return true, nil
 	}
+}
+
+//GetAllProjects - func return all projects
+func (c PGClient) GetAllProjects() ([]subset.AllProject, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select project_names from projects")
+	if err != nil {
+		return nil, err
+	}
+	res := make([]subset.AllProject, 0, 20)
+	for rows.Next() {
+		p := subset.AllProject{}
+		rows.Scan(&p.ID, &p.Name)
+		res = append(res, p)
+	}
+	return res, nil
+}
+
+//NewProject - insert new projects from database
+func (c PGClient) NewProject(project string) (err error) {
+	_, err = db.Exec("insert into projects (project_name)values($1)", project)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateProject - update projects values to table  scenarios
+func (c PGClient) UpdateProject(id int64, project string) (err error) {
+	_, err = db.Exec("UPDATE projects SET project_name = $1  where id= $2", project, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteProject - update projects values to table  scenarios
+func (c PGClient) DeleteProject(id int64) (err error) {
+	_, err = db.Exec("delete from projects where id= $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//ProjectIfExist - chacke host, is exist return true
+func (c PGClient) ProjectIfExist(project string) (bool, error) {
+	var tempProject string
+	err := db.QueryRow("select project_name from projects where project_name=$1", project).Scan(&tempProject)
+	if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
+}
+
+//NewRole - insert new role from database
+func (c PGClient) NewRole(role string) (err error) {
+	_, err = db.Exec("insert into roles (role_name)values($1)", role)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateRole - update role values
+func (c PGClient) UpdateRole(id int64, role string) (err error) {
+	_, err = db.Exec("UPDATE roles SET role_name = $1  where id= $2", role, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteRole - update role values to table  scenarios
+func (c PGClient) DeleteRole(id int64) (err error) {
+	_, err = db.Exec("delete from roles where id= $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//RoleIfExist - chacke host, is exist return true
+func (c PGClient) RoleIfExist(role string) (bool, error) {
+	var tempRole string
+	err := db.QueryRow("select role_name from roles where role_name=$1", role).Scan(&tempRole)
+	if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
+}
+
+//GetAllRoles - func return all projects
+func (c PGClient) GetAllRoles() ([]subset.AllRoles, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select role_name from roles")
+	if err != nil {
+		return nil, err
+	}
+	res := make([]subset.AllRoles, 0, 20)
+	for rows.Next() {
+		p := subset.AllRoles{}
+		rows.Scan(&p.ID, &p.Name)
+		res = append(res, p)
+	}
+	return res, nil
 }
