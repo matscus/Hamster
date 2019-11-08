@@ -22,17 +22,27 @@ func (c Host) New() subset.Host {
 	return host
 }
 
-//InsertToDB - func for insert new generators, from database
-func (g Host) InsertToDB() error {
+//Create - func for insert new generators, from database
+func (h Host) Create() error {
 	pgclient := client.PGClient{}.New()
-	err := pgclient.NewHost(g.Host, g.Type, g.User, g.Projects)
+	err := pgclient.NewHost(h.Host, h.Type, h.User, h.Projects)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//UpdateHost - func for udpate generator, from database
-func (g Host) UpdateHost() error {
-	return client.PGClient{}.New().UpdateHost(g.ID, g.Host, g.Type, g.User, g.Projects)
+//Update - func for udpate generator, from database
+func (h Host) Update() error {
+	return client.PGClient{}.New().UpdateHost(h.ID, h.Host, h.User, h.Type, h.Projects)
+}
+
+//DeleteHost - func for udelete host
+func (h Host) Delete() error {
+	return client.PGClient{}.New().DeleteHost(h.ID)
+}
+
+//IfExist
+func (h Host) IfExist() (bool, error) {
+	return client.PGClient{}.New().HostIfExist(string(h.ID))
 }
