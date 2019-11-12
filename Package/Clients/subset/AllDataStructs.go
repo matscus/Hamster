@@ -12,13 +12,13 @@ type AllService struct {
 
 //AllScenario - struct for return all scenario
 type AllScenario struct {
-	ID           int64    `json:"id"`
-	Name         string   `json:"name"`
-	Type         string   `json:"type"`
-	Gun          string   `json:"gun"`
-	LastModified string   `json:"lastmodified"`
-	Projects     []string `json:"projects"`
-	TreadGroups  string   `json:"params"`
+	ID           int64  `json:"id"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Gun          string `json:"gun"`
+	LastModified string `json:"lastmodified"`
+	Projects     string `json:"projects"`
+	TreadGroups  string `json:"params"`
 }
 
 //AllGenerator - struct for response all generators data
@@ -49,7 +49,7 @@ type AllHost struct {
 }
 
 //AllProject - struct for response all Projects data
-type AllProject struct {
+type AllProjects struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }

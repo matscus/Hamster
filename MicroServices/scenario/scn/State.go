@@ -2,7 +2,6 @@ package scn
 
 import (
 	"encoding/json"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -59,7 +58,7 @@ func InitData() (err error) {
 
 		err := json.Unmarshal([]byte(t.TreadGroups), &tgp)
 		if err != nil {
-			log.Println("Unmarshal params error: ", err)
+			return (err)
 		}
 		s.ThreadGroups = tgp
 		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, s)

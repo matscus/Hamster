@@ -33,33 +33,13 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 	} else {
 		switch r.Method {
 		case "POST":
-			ok, err := project.IfExist()
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			} else {
-				if ok {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\": Host is exist }"))
-				} else {
-					err = project.Create()
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-					} else {
-						w.WriteHeader(http.StatusOK)
-						w.Write([]byte("{\"Message\":\"User created \"}"))
-					}
-				}
-			}
-		case "PUT":
-			err = project.Update()
+			err = project.Create()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("{\"Message\":\"Host updated \"}"))
+				w.Write([]byte("{\"Message\":\"User created \"}"))
 			}
 		case "DELETE":
 			err = project.Delete()

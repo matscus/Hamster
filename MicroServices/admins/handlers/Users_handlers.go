@@ -33,24 +33,13 @@ func Users(w http.ResponseWriter, r *http.Request) {
 	} else {
 		switch r.Method {
 		case "POST":
-			ok, err := user.IfExist()
+			err = user.Create()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
-				if ok {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\": User name is exist }"))
-				} else {
-					err = user.Create()
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-					} else {
-						w.WriteHeader(http.StatusOK)
-						w.Write([]byte("{\"Message\":\"User created \"}"))
-					}
-				}
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("{\"Message\":\"User created \"}"))
 			}
 		case "PUT":
 			err := user.Update()

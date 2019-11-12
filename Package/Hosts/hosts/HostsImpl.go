@@ -9,8 +9,8 @@ import (
 type Host struct {
 	ID       int64    `json:"id"`
 	Host     string   `json:"host"`
-	Type     string   `json:"type`
-	User     string   `json:user`
+	Type     string   `json:"type,omitempty"`
+	User     string   `json:"user,omitempty"`
 	State    string   `json:"state"`
 	Projects []string `json:"projects"`
 }
@@ -34,7 +34,16 @@ func (h Host) Create() error {
 
 //Update - func for udpate generator, from database
 func (h Host) Update() error {
-	return client.PGClient{}.New().UpdateHost(h.ID, h.Host, h.User, h.Type, h.Projects)
+	client := client.PGClient{}.New()
+	err := client.UpdateHost(h.ID, h.Host, h.User, h.Type)
+	if err != nil {
+		return err
+	}
+	projectsID, err := client.GetProjectsIDtoString(h.Projects)
+	if err != nil {
+		return err
+	}
+	return client.UpdatetHostProjects(h.ID, projectsID)
 }
 
 //DeleteHost - func for udelete host

@@ -5,7 +5,6 @@ type User interface {
 	CheckUser() (res bool, err error)
 	CheckPasswordExp() (res bool, err error)
 	ChangePassword() error
-	IfExist() (bool, error)
 	Create() error
 	Update() error
 	Delete() error

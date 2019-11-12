@@ -47,20 +47,18 @@ func (s *Service) Stop(user string) error {
 
 //InsertToDB - insert new generator to database
 func (s *Service) Create() error {
-	pgclient := client.PGClient{}.New()
-	id, err := pgclient.GetLastServiceID()
-	if err != nil {
-		return err
-	}
-	return pgclient.NewService(id, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+	return client.PGClient{}.New().NewService(s.Name, s.Host, s.URI, s.Type, s.RunSTR, s.Projects)
 }
 
 //Update - update service info from database
 func (s *Service) Update() error {
+	client := client.PGClient{}.New()
 	if s.RunSTR == "" {
-		return client.PGClient{}.New().UpdateServiceWithOutRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects)
+		client.UpdateServiceWithOutRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type)
+		return client.UpdatetServiceProjects(s.ID, s.Projects)
 	} else {
-		return client.PGClient{}.New().UpdateServiceWithRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+		client.UpdateServiceWithRunSTR(s.ID, s.Name, s.Host, s.URI, s.Type, s.RunSTR)
+		return client.UpdatetServiceProjects(s.ID, s.Projects)
 	}
 
 }
@@ -76,11 +74,7 @@ func (s *Service) InstallServiceToRemoteHost(user string) (err error) {
 		return err
 	}
 	pgclient := client.PGClient{}.New()
-	id, err := pgclient.GetLastServiceID()
-	if err != nil {
-		return err
-	}
-	err = pgclient.NewService(id, s.Name, s.Host, s.URI, s.Type, s.Projects, s.RunSTR)
+	err = pgclient.NewService(s.Name, s.Host, s.URI, s.Type, s.RunSTR, s.Projects)
 	if err != nil {
 		return err
 	}

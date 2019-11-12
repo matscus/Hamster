@@ -33,19 +33,25 @@ func (u *User) New() subset.User {
 
 //NewTokenString - func for generate and response new token
 func (u User) NewTokenString(temp bool) (token string, err error) {
-	role, projects, err := client.PGClient{}.New().GetUserRoleAndProject(u.User)
+	client := client.PGClient{}.New()
+	userID, role, err := client.GetUserIDAndRole(u.User)
 	if err != nil {
 		return "", err
 	} else {
-		if temp {
-			token, err = jwttoken.Token{}.New().GenerateTemp(role, u.User, projects)
-			if err != nil {
-				return "", err
-			}
+		projects, err := client.GetUserProjects(userID)
+		if err != nil {
+			return "", err
 		} else {
-			token, err = jwttoken.Token{}.New().Generate(role, u.User, projects)
-			if err != nil {
-				return "", err
+			if temp {
+				token, err = jwttoken.Token{}.New().GenerateTemp(role, u.User, projects)
+				if err != nil {
+					return "", err
+				}
+			} else {
+				token, err = jwttoken.Token{}.New().Generate(role, u.User, projects)
+				if err != nil {
+					return "", err
+				}
 			}
 		}
 	}
@@ -79,11 +85,6 @@ func (u *User) CheckPasswordExp() (res bool, err error) {
 	}
 }
 
-// IfExist - check users, is exist return true
-func (u *User) IfExist() (bool, error) {
-	return client.PGClient{}.New().UserNameIfExist(u.User)
-}
-
 //Create - create new user and insert data to database
 func (u *User) Create() error {
 	h := sha256.New()
@@ -92,12 +93,26 @@ func (u *User) Create() error {
 		return err
 	}
 	h.Write([]byte(pass))
-	return client.PGClient{}.New().NewUser(u.User, fmt.Sprintf("%x", h.Sum(nil)), u.Role, u.Projects)
+	client := client.PGClient{}.New()
+	projectsID, err := client.GetProjectsIDtoString(u.Projects)
+	if err != nil {
+		return err
+	}
+	return client.NewUser(u.User, fmt.Sprintf("%x", h.Sum(nil)), u.Role, projectsID)
 }
 
 //Update - update user data
 func (u *User) Update() error {
-	return client.PGClient{}.New().UpdateUser(u.ID, u.Password, u.Role, u.Projects)
+	client := client.PGClient{}.New()
+	err := client.UpdateUser(u.ID, u.Role)
+	if err != nil {
+		return err
+	}
+	projectsID, err := client.GetProjectsIDtoString(u.Projects)
+	if err != nil {
+		return err
+	}
+	return client.UpdatetUserProjects(u.ID, projectsID)
 }
 
 //Delete -delete user

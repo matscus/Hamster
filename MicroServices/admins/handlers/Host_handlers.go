@@ -33,24 +33,13 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	} else {
 		switch r.Method {
 		case "POST":
-			ok, err := host.IfExist()
+			err = host.Create()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
-				if ok {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\": Host is exist }"))
-				} else {
-					err = host.Create()
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-					} else {
-						w.WriteHeader(http.StatusOK)
-						w.Write([]byte("{\"Message\":\"User created \"}"))
-					}
-				}
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("{\"Message\":\"User created \"}"))
 			}
 		case "PUT":
 			err = host.Update()

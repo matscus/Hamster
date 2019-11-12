@@ -4,23 +4,15 @@ import (
 	"database/sql"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	//_ mask PG driver
 	"github.com/lib/pq"
+	pg "github.com/lib/pq"
 	"github.com/matscus/Hamster/Package/Clients/subset"
 )
 
 var (
-	selectAllService   = "select id,name,host,uri,type,projects from service"
-	selectAllScenarios = "select id, name,test_type,last_modified,gun_type,projects,params from scenarios;"
-	//selectAllGenerators = "select id, host from generators"
-	selectAllGenerators = "select id, ip from hosts where host_type='generator'"
-	selectServiceRunSTR = "select runstr from service where id=$1"
-	deleteService       = "delete service where id=$1"
-	selectUserForHosts  = "select ip,users from hosts"
-	//selectProjectService = "select id,name,host,uri,type,projects from service where '{$1}' <@ projects"
 	db *sql.DB
 )
 
@@ -40,25 +32,34 @@ func (c PGClient) New() subset.PGClient {
 
 //GetLastRunID - return last run ID
 func (c PGClient) GetLastRunID() (runID int64, err error) {
-	db.QueryRow("select max(id) from runs").Scan(&runID)
-	return runID, err
+	err = db.QueryRow("select max(id) from runs").Scan(&runID)
+	if err != nil {
+		return runID, err
+	}
+	return runID, nil
 }
 
 //GetNewRunID - return new run ID
 func (c PGClient) GetNewRunID() (runID int64, err error) {
-	db.QueryRow("select max(id) from runs").Scan(&runID)
+	err = db.QueryRow("select max(id) from runs").Scan(&runID)
+	if err != nil {
+		return runID, err
+	}
 	return runID + 1, err
 }
 
 //GetLastServiceID - return last service id
 func (c PGClient) GetLastServiceID() (ID int64, err error) {
-	db.QueryRow("select max(id) from service").Scan(&ID)
-	return ID, err
+	err = db.QueryRow("select max(id) from service").Scan(&ID)
+	if err != nil {
+		return ID, err
+	}
+	return ID, nil
 }
 
 //GetUserHash - return user password hash
 func (c PGClient) GetUserHash(user string) (hash string, err error) {
-	q, err := db.Query("select password from users where users=$1", user)
+	q, err := db.Query("select password from tUsers where users=$1", user)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +74,7 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 
 //GetUserPasswordExp - return user password expiration
 func (c PGClient) GetUserPasswordExp(user string) (exp string, err error) {
-	err = db.QueryRow("select password_expiration from users where users=$1", user).Scan(&exp)
+	err = db.QueryRow("select password_expiration from tUsers where users=$1", user).Scan(&exp)
 	if err != nil {
 		return exp, err
 	}
@@ -81,23 +82,34 @@ func (c PGClient) GetUserPasswordExp(user string) (exp string, err error) {
 }
 
 //UpdateServiceWithOutRunSTR - update service values in database wothout string for run service
-func (c PGClient) UpdateServiceWithOutRunSTR(id int64, name string, host string, uri string, typeTest string, projects []string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE service SET name = $1, host = $2, uri= $3,type=$4, projects=$5 where id= $6", name, host, uri, typeTest, projectstr, id)
+func (c PGClient) UpdateServiceWithOutRunSTR(id int64, name string, host string, uri string, typeTest string) (err error) {
+	_, err = db.Exec("UPDATE tServices SET name = $1, host = $2, uri= $3,type=$4 where id= $5", name, host, uri, typeTest, id)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-//UpdateServiceWithOutRunSTR - update service values in database wothout string for run service
-func (c PGClient) UpdateServiceWithRunSTR(id int64, name string, host string, uri string, typeTest string, projects []string, runSTR string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE service SET name = $1, host = $2, uri= $3,type=$4, projects=$5,runstr=$6 where id= $7", name, host, uri, typeTest, projectstr, runSTR, id)
+//UpdateServiceWithRunSTR - update service values in database wothout string for run service
+func (c PGClient) UpdateServiceWithRunSTR(id int64, name string, host string, uri string, typeTest string, runSTR string) (err error) {
+	_, err = db.Exec("UPDATE service SET name = $1, host = $2, uri= $3,type=$4, runstr=$5 where id= $6", name, host, uri, typeTest, runSTR, id)
 	if err != nil {
 		return err
 	}
 	return err
+}
+
+//UpdatetServiceProjects -
+func (c PGClient) UpdatetServiceProjects(id int64, projects []string) error {
+	_, err := db.Exec("delete from tServiceProjects where user_id=$1", id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Query("select tServiceProjects_inc_function($1,$2)", id, pg.Array(projects))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //SetStartTest - insert scenario values to table runs at start scenario
@@ -124,11 +136,10 @@ func (c PGClient) SetStopTest(runID string) error {
 }
 
 //NewScenario - insert new scenario values to table  scenarios
-func (c PGClient) NewScenario(name string, typeTest string, gun string, projects []string, params string) (err error) {
+func (c PGClient) NewScenario(name string, typeTest string, gun string, projects string, params string) (err error) {
 	t := time.Now().Unix()
-	projectstr := "{" + strings.Join(projects, ",") + "}"
 	timestamp := strconv.FormatInt(t, 10)
-	_, err = db.Exec("INSERT INTO scenarios (name,test_type,last_modified,gun_type,projects,params) VALUES ($1,$2,to_timestamp($3),$4,$5,$6)", name, typeTest, timestamp, gun, projectstr, params)
+	_, err = db.Exec("INSERT INTO tScenarios (name,test_type,last_modified,gun_type,project_name,params) VALUES ($1,$2,to_timestamp($3),$4,$5,$6)", name, typeTest, timestamp, gun, projects, params)
 	if err != nil {
 		return err
 	}
@@ -144,10 +155,9 @@ func (c PGClient) GetScenarioName(id int64) (res string, err error) {
 }
 
 //CheckScenario - Check scenario, if exist return true, if not exist return fasle
-func (c PGClient) CheckScenario(name string, gun string, projects []string) (res bool, err error) {
+func (c PGClient) CheckScenario(name string, gun string, projects string) (res bool, err error) {
 	var tempname string
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	err = db.QueryRow("select name from  scenarios where name=$1 and gun_type=$2 and projects=$3", name, gun, projectstr).Scan(&tempname)
+	err = db.QueryRow("select name from  tScenarios where name=$1 and gun_type=$2 and projects=$3", name, gun, projects).Scan(&tempname)
 	if err != nil {
 		return false, err
 	}
@@ -168,11 +178,8 @@ func (c PGClient) DeleteScenario(id int64) (err error) {
 }
 
 //NewService - insert new scenario values to table  scenarios
-func (c PGClient) NewService(id int64, name string, host string, uri string, typeTest string, projects []string, runSTR string) (err error) {
-	t := time.Now().Unix()
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	timestamp := strconv.FormatInt(t, 10)
-	_, err = db.Exec("INSERT INTO service (id,name,host,uri,type,projects) VALUES ($1,$2,$3,$4,to_timestamp($5),$6,$7", id, name, host, uri, typeTest, timestamp, projectstr, runSTR)
+func (c PGClient) NewService(name string, host string, uri string, type_service string, runSTR string, projects []string) (err error) {
+	_, err = db.Query("select new_service_function", name, host, uri, type_service, runSTR, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -180,11 +187,10 @@ func (c PGClient) NewService(id int64, name string, host string, uri string, typ
 }
 
 //UpdateScenario - update scenario values to table  scenarios
-func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun string, projects []string, params string) (err error) {
+func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun string, projects string, params string) (err error) {
 	t := time.Now().Unix()
 	timestamp := strconv.FormatInt(t, 10)
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE scenarios SET name = $1,test_type  = $2, last_modified = to_timestamp($3), gun_type= $4, projects=$5,params=$6 where id= $7", name, typeTest, timestamp, gun, projectstr, params, id)
+	_, err = db.Exec("UPDATE tServices SET name = $1,test_type  = $2, last_modified = to_timestamp($3), gun_type= $4, projects=$5,params=$6 where id= $7", name, typeTest, timestamp, gun, projects, params, id)
 	if err != nil {
 		return err
 	}
@@ -194,12 +200,24 @@ func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun str
 //GetAllServices - return all services info
 func (c PGClient) GetAllServices() (*[]subset.AllService, error) {
 	var rows *sql.Rows
-	rows, err := db.Query(selectAllService)
+	rows, err := db.Query("select id,name,host,uri,type from tServices")
 	res := make([]subset.AllService, 0, 200)
 	for rows.Next() {
 		t := subset.AllService{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type, pq.Array(&t.Projects)); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type); err != nil {
 			return &res, err
+		}
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from tServiceProjects where service_id=$1)", t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var tempProject string
+			err := rowsProjects.Scan(&tempProject)
+			if err != nil {
+				return nil, err
+			}
+			t.Projects = append(t.Projects, tempProject)
 		}
 		res = append(res, t)
 	}
@@ -209,11 +227,11 @@ func (c PGClient) GetAllServices() (*[]subset.AllService, error) {
 //GetAllScenarios - return all scenario info
 func (c PGClient) GetAllScenarios() (*[]subset.AllScenario, error) {
 	var rows *sql.Rows
-	rows, err := db.Query(selectAllScenarios)
+	rows, err := db.Query("select id, name,test_type,last_modified,gun_type,project_name,params from tScenarios")
 	res := make([]subset.AllScenario, 0, 100)
 	for rows.Next() {
 		t := subset.AllScenario{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, pq.Array(&t.Projects), &t.TreadGroups); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.LastModified, &t.Gun, &t.Projects, &t.TreadGroups); err != nil {
 			return &res, err
 		}
 		res = append(res, t)
@@ -232,7 +250,7 @@ func (c PGClient) GetAllGenerators() ([][]string, error) {
 	var ID, host string
 	res := make([][]string, 0, 5)
 	var rows *sql.Rows
-	rows, err := db.Query(selectAllGenerators)
+	rows, err := db.Query("select id, ip from tHosts where host_type='generator'")
 	if err != nil {
 		return nil, err
 	}
@@ -251,14 +269,14 @@ func (c PGClient) GetAllGenerators() ([][]string, error) {
 
 //GetLastGeneratorsID - return last generator id
 func (c PGClient) GetLastGeneratorsID() (ID int64, err error) {
-	db.QueryRow("select max(id) from hosts where host_type=generator").Scan(&ID)
+	db.QueryRow("select max(id) from thosts where host_type=generator").Scan(&ID)
 	return ID, err
 }
 
 //GetServiceRunSTR - update generator values to table  scenarios
 func (c PGClient) GetServiceRunSTR(id int64) (runSTR string, err error) {
 	var rows *sql.Rows
-	rows, err = db.Query(selectServiceRunSTR, id)
+	rows, err = db.Query("select runstr from tServices where id=$1", id)
 	if err != nil {
 		return runSTR, err
 	}
@@ -270,7 +288,7 @@ func (c PGClient) GetServiceRunSTR(id int64) (runSTR string, err error) {
 
 //DeleteService - func for delete row from db
 func (c PGClient) DeleteService(id int64) (err error) {
-	_, err = db.Exec(deleteService, id)
+	_, err = db.Exec("delete tServices where id=$1", id)
 	if err != nil {
 		return err
 	}
@@ -279,9 +297,25 @@ func (c PGClient) DeleteService(id int64) (err error) {
 
 //GetProjectServices - func return all service for user project
 func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, error) {
-	var rows *sql.Rows
-	str := "select id,name,host,uri,type,projects from service where '{\"" + project + "\"}' <@ projects"
-	rows, err := db.Query(str)
+	var projectID int64
+	err := db.QueryRow("select id from tProjects where name=$1", project).Scan(&projectID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.Query("select service_id from tServiceProjects where project_id=$1", projectID)
+	if err != nil {
+		return nil, err
+	}
+	serviceIDs := make([]int64, 0, 10)
+	for rows.Next() {
+		var tempID int64
+		err := rows.Scan(&tempID)
+		if err != nil {
+			return nil, err
+		}
+		serviceIDs = append(serviceIDs, tempID)
+	}
+	rows, err = db.Query("select,name,host,uri,type,runstr from tServices where id =any($1)", pg.Array(serviceIDs))
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +334,7 @@ func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, erro
 func (c PGClient) GetUsersAndHosts() (map[string]string, error) {
 	res := make(map[string]string)
 	var ip, users string
-	rows, err := db.Query(selectUserForHosts)
+	rows, err := db.Query("select ip,users from tHosts")
 	if err != nil {
 		return nil, err
 	}
@@ -316,14 +350,26 @@ func (c PGClient) GetUsersAndHosts() (map[string]string, error) {
 //GetAllUsers - func return all users
 func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select id,users,role,projects from users")
+	rows, err := db.Query("select id,users,role from tUsers")
 	if err != nil {
 		return nil, err
 	}
 	res := make([]subset.AllUser, 0, 20)
 	for rows.Next() {
 		u := subset.AllUser{}
-		rows.Scan(&u.ID, &u.User, &u.Role, pq.Array(&u.Projects))
+		rows.Scan(&u.ID, &u.User, &u.Role)
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from tuserprojects where user_id=$1)", u.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var project string
+			err = rowsProjects.Scan(&project)
+			if err != nil {
+				return nil, err
+			}
+			u.Projects = append(u.Projects, project)
+		}
 		u.Password = "so that the password is not stored in clear text, use https(с) Programmer of Mail.ru Group"
 		res = append(res, u)
 	}
@@ -332,9 +378,7 @@ func (c PGClient) GetAllUsers() ([]subset.AllUser, error) {
 
 //NewUser - func create new users
 func (c PGClient) NewUser(users string, password string, role string, projects []string) error {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	t := time.Now().Unix()
-	_, err := db.Exec("insert into users(users,password,password_expiration,role,projects)values($1,$2,to_timestamp($3),$4,$5)", users, password, t, role, projectstr)
+	_, err := db.Query("select new_user_function($1,$2,$3,$4) ", users, password, role, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -342,10 +386,9 @@ func (c PGClient) NewUser(users string, password string, role string, projects [
 }
 
 //UpdateUser - func update  users
-func (c PGClient) UpdateUser(id int64, password string, role string, projects []string) error {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
+func (c PGClient) UpdateUser(id int64, role string) error {
 	t := time.Now().Add(2880 * time.Hour).Unix()
-	_, err := db.Exec("update  users set password_expiration=to_timestamp($1), role=$2, projects=$3 where id=$4", t, role, projectstr, id)
+	_, err := db.Exec("update tUsers set password_expiration=to_timestamp($1), role=$2 where id=$3", t, role, id)
 	if err != nil {
 		return err
 	}
@@ -354,7 +397,7 @@ func (c PGClient) UpdateUser(id int64, password string, role string, projects []
 
 //DeleteUser - delete user
 func (c PGClient) DeleteUser(id int64) (err error) {
-	_, err = db.Exec("delete from users where id=$1", id)
+	_, err = db.Exec("delete from tUsers where id=$1", id)
 	if err != nil {
 		return err
 	}
@@ -364,43 +407,118 @@ func (c PGClient) DeleteUser(id int64) (err error) {
 //ChangeUserPassword - delete user
 func (c PGClient) ChangeUserPassword(id int64, password string) (err error) {
 	t := time.Now().Unix()
-	_, err = db.Exec("update users set password=$1, password_expiration=to_timestamp($2) where id=$3", password, t, id)
+	_, err = db.Exec("update tUsers set password=$1, password_expiration=to_timestamp($2) where id=$3", password, t, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//NewUser - func create new users
-func (c PGClient) UserNameIfExist(username string) (bool, error) {
-	var tempUser string
-	err := db.QueryRow("select users from users where users=$1", username).Scan(&tempUser)
+//UpdatetUserProjects -
+func (c PGClient) UpdatetUserProjects(id int64, projects []string) error {
+	_, err := db.Exec("delete from tUserProjects where user_id=$1", id)
 	if err != nil {
-		return false, err
-	} else {
-		return true, nil
+		return err
 	}
+	_, err = db.Query("select tUserProjects_inc_function($1,$2)", id, pg.Array(projects))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdatetHostProjects -
+func (c PGClient) UpdatetHostProjects(id int64, projects []string) error {
+	_, err := db.Exec("delete from tHostProjects where user_id=$1", id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Query("select tHostProjects_inc_function($1,$2)", id, pg.Array(projects))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //GetUserRoleAndProject - func to return all users role and  project for front project and role models
 func (c PGClient) GetUserRoleAndProject(user string) (role string, projects []string, err error) {
-	if err := db.QueryRow("select role,projects from users where users=$1", user).Scan(&role, pq.Array(&projects)); err != nil {
+	if err := db.QueryRow("select role,projects from tUsers where users=$1", user).Scan(&role, pq.Array(&projects)); err != nil {
 		return role, projects, err
 	}
 	return role, projects, nil
 }
 
+//GetUserIDAndRole - func to return all users role and  project for front project and role models
+func (c PGClient) GetUserIDAndRole(user string) (id int64, role string, err error) {
+	if err := db.QueryRow("select id,role from tUsers where users=$1", user).Scan(&id, &role); err != nil {
+		return 0, role, err
+	}
+	return id, role, nil
+}
+
+//GetUserProjects - func to return all users role and  project for front project and role models
+func (c PGClient) GetUserProjects(userID int64) (projects []string, err error) {
+	rows, err := db.Query("select name from tProjects where id in(select project_id from tuserprojects where user_id=$1)", userID)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var project string
+		err = rows.Scan(&project)
+		if err != nil {
+			return nil, err
+		} else {
+			projects = append(projects, project)
+		}
+	}
+	return projects, nil
+}
+
+//GetProjectsIDtoString - func to return all users role and  project for front project and role models
+func (c PGClient) GetProjectsIDtoString(projects []string) (ids []string, err error) {
+	rows, err := db.Query("select id from tprojects where name = any($1)", pg.Array(projects))
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id int
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		} else {
+			ids = append(ids, strconv.Itoa(id))
+		}
+	}
+	return ids, nil
+}
+
 //GetAllHosts - func return all hosts
 func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select id,ip,host_type,users,projects from hosts")
+	rows, err := db.Query("select id,ip,host_type,users from tHosts")
 	if err != nil {
 		return nil, err
 	}
 	res := make([]subset.AllHost, 0, 20)
 	for rows.Next() {
 		h := subset.AllHost{}
-		rows.Scan(&h.ID, &h.Host, &h.Type, &h.User, pq.Array(&h.Projects))
+		err = rows.Scan(&h.ID, &h.Host, &h.Type, &h.User)
+		if err != nil {
+			return nil, err
+		} else {
+			rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from thostprojects where host_id=$1)", h.ID)
+			if err != nil {
+				return nil, err
+			}
+			for rowsProjects.Next() {
+				var project string
+				err = rowsProjects.Scan(&project)
+				if err != nil {
+					return nil, err
+				}
+				h.Projects = append(h.Projects, project)
+			}
+		}
 		res = append(res, h)
 	}
 	return res, nil
@@ -408,8 +526,7 @@ func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
 
 //NewHost - insert new host from database
 func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("insert into hosts (ip,host_type,users,projects)values($1,$2,$3,$4)", ip, host_type, user, projectstr)
+	_, err = db.Query("select * from new_host_function(($1,$2,$3,$4)", ip, host_type, user, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -417,9 +534,8 @@ func (c PGClient) NewHost(ip string, user string, host_type string, projects []s
 }
 
 //UpdateHost - update host values to table  scenarios
-func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string, projects []string) (err error) {
-	projectstr := "{" + strings.Join(projects, ",") + "}"
-	_, err = db.Exec("UPDATE hosts SET ip = $1 host_type=$2 Users=$3, projects=$4 where id= $5", ip, host_type, user, projectstr, id)
+func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string) (err error) {
+	_, err = db.Exec("UPDATE hosts SET ip = $1 host_type=$2 Users=$3  where id= $4", ip, host_type, user, id)
 	if err != nil {
 		return err
 	}
@@ -447,15 +563,15 @@ func (c PGClient) HostIfExist(ip string) (bool, error) {
 }
 
 //GetAllProjects - func return all projects
-func (c PGClient) GetAllProjects() ([]subset.AllProject, error) {
+func (c PGClient) GetAllProjects() ([]subset.AllProjects, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select project_names from projects")
+	rows, err := db.Query("select id,name from tProjects")
 	if err != nil {
 		return nil, err
 	}
-	res := make([]subset.AllProject, 0, 20)
+	res := make([]subset.AllProjects, 0, 20)
 	for rows.Next() {
-		p := subset.AllProject{}
+		p := subset.AllProjects{}
 		rows.Scan(&p.ID, &p.Name)
 		res = append(res, p)
 	}
@@ -464,16 +580,7 @@ func (c PGClient) GetAllProjects() ([]subset.AllProject, error) {
 
 //NewProject - insert new projects from database
 func (c PGClient) NewProject(project string) (err error) {
-	_, err = db.Exec("insert into projects (project_name)values($1)", project)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//UpdateProject - update projects values to table  scenarios
-func (c PGClient) UpdateProject(id int64, project string) (err error) {
-	_, err = db.Exec("UPDATE projects SET project_name = $1  where id= $2", project, id)
+	_, err = db.Exec("insert into tProjects (name)values($1)", project)
 	if err != nil {
 		return err
 	}
@@ -482,27 +589,16 @@ func (c PGClient) UpdateProject(id int64, project string) (err error) {
 
 //DeleteProject - update projects values to table  scenarios
 func (c PGClient) DeleteProject(id int64) (err error) {
-	_, err = db.Exec("delete from projects where id= $1", id)
+	_, err = db.Exec("delete from tProjects where id= $1", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//ProjectIfExist - chacke host, is exist return true
-func (c PGClient) ProjectIfExist(project string) (bool, error) {
-	var tempProject string
-	err := db.QueryRow("select project_name from projects where project_name=$1", project).Scan(&tempProject)
-	if err != nil {
-		return false, err
-	} else {
-		return true, nil
-	}
-}
-
 //NewRole - insert new role from database
 func (c PGClient) NewRole(role string) (err error) {
-	_, err = db.Exec("insert into roles (role_name)values($1)", role)
+	_, err = db.Exec("insert into tRole (name)values($1)", role)
 	if err != nil {
 		return err
 	}
@@ -511,7 +607,7 @@ func (c PGClient) NewRole(role string) (err error) {
 
 //UpdateRole - update role values
 func (c PGClient) UpdateRole(id int64, role string) (err error) {
-	_, err = db.Exec("UPDATE roles SET role_name = $1  where id= $2", role, id)
+	_, err = db.Exec("UPDATE tRole SET name = $1  where id= $2", role, id)
 	if err != nil {
 		return err
 	}
@@ -520,28 +616,17 @@ func (c PGClient) UpdateRole(id int64, role string) (err error) {
 
 //DeleteRole - update role values to table  scenarios
 func (c PGClient) DeleteRole(id int64) (err error) {
-	_, err = db.Exec("delete from roles where id= $1", id)
+	_, err = db.Exec("delete from tRole where id= $1", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//RoleIfExist - chacke host, is exist return true
-func (c PGClient) RoleIfExist(role string) (bool, error) {
-	var tempRole string
-	err := db.QueryRow("select role_name from roles where role_name=$1", role).Scan(&tempRole)
-	if err != nil {
-		return false, err
-	} else {
-		return true, nil
-	}
-}
-
 //GetAllRoles - func return all projects
 func (c PGClient) GetAllRoles() ([]subset.AllRoles, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select role_name from roles")
+	rows, err := db.Query("select id,name from tRoles")
 	if err != nil {
 		return nil, err
 	}

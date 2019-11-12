@@ -82,22 +82,17 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	page, ok := params["project"]
 	if ok {
-		if len(scn.GetResponseAllData.Scenarios) == 0 || len(scn.GetResponseAllData.Generators) == 0 {
+		//|| len(scn.GetResponseAllData.Generators) == 0
+		if len(scn.GetResponseAllData.Scenarios) == 0 {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("{\"Message\":\"len GetResponceAllData slice equally 0\"}"))
 		} else {
 			res := scn.GetResponse{}
 			l := len(scn.GetResponseAllData.Scenarios)
-			iter := 0
 			for i := 0; i < l; i++ {
-				projects := scn.GetResponseAllData.Scenarios[i].Projects
-				for i := 0; i < len(projects); i++ {
-					if projects[i] == page {
-						res.Scenarios = append(res.Scenarios, scn.GetResponseAllData.Scenarios[iter])
-						break
-					}
+				if scn.GetResponseAllData.Scenarios[i].Projects == page {
+					res.Scenarios = append(res.Scenarios, scn.GetResponseAllData.Scenarios[i])
 				}
-				iter++
 			}
 			scn.CheckRunsGen()
 			res.Generators = scn.GetResponseAllData.Generators
@@ -127,13 +122,13 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 			s.Name = r.FormValue("scenarioName")
 			s.Type = r.FormValue("scenarioType")
 			s.Gun = r.FormValue("gun")
-			s.Projects = []string{r.FormValue("project")}
+			s.Projects = r.FormValue("project")
 			oldname, err := s.GetNameForID()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			} else {
-				os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip")
+				os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip")
 				r.ParseMultipartForm(32 << 20)
 				file, _, _ := r.FormFile("uploadFile")
 				if file == nil {
@@ -143,7 +138,7 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 					scn.InitData()
 				} else {
 					defer file.Close()
-					f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects[0]+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
+					f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -179,8 +174,8 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 			s.Name = r.FormValue("scenarioName")
 			s.Type = r.FormValue("scenarioType")
 			s.Gun = r.FormValue("gun")
-			s.Projects = []string{r.FormValue("project")}
-			os.Remove(os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip")
+			s.Projects = r.FormValue("project")
+			os.Remove(os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip")
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -198,7 +193,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	s.Name = r.FormValue("scenarioName")
 	s.Type = r.FormValue("scenarioType")
 	s.Gun = r.FormValue("gun")
-	s.Projects = []string{r.FormValue("project")}
+	s.Projects = r.FormValue("project")
 	r.ParseMultipartForm(32 << 20)
 	ifExist, _ := s.CheckScenario()
 	if ifExist {
@@ -218,14 +213,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			cacheScripts, ok := cache.Get(fileName)
 			if ok {
 				scripts := cacheScripts.(scn.ScriptCache)
-				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
-				// f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
-				// if err != nil {
-				// 	w.WriteHeader(http.StatusInternalServerError)
-				// 	w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				// }
-				// defer f.Close()
-				// _, err = io.Copy(f, file)
+				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 				err := ioutil.WriteFile(newFile, scripts.ScriptFile, os.FileMode(0755))
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -254,7 +242,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 
 				}
 			} else {
-				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/" + s.Name + ".zip"
+				newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 				f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -444,7 +432,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 				}
 				cmd := exec.Command("unzip", newFile, "-d", tempParseDir)
 				cmd.Run()
-				prepaseResponce := make([]scn.PreParseResponce, 0, 0)
+				preparseResponce := make([]scn.PreParseResponce, 0, 0)
 				filesInfo, _ := ioutil.ReadDir(tempParseDir)
 				fileIfNotExist := true
 				for i := 0; i < len(filesInfo); i++ {
@@ -472,10 +460,10 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 									}
 								}
 								if len(res) > 0 {
-									prepaseResponce = append(prepaseResponce, scn.PreParseResponce{ThreadGroupName: tgParams[i].ThreadGroupName, FailedParams: res})
+									preparseResponce = append(preparseResponce, scn.PreParseResponce{ThreadGroupName: tgParams[i].ThreadGroupName, FailedParams: res})
 								}
 							}
-							if len(prepaseResponce) == 0 {
+							if len(preparseResponce) == 0 {
 								cache.Set(fileName, scn.ScriptCache{ScriptFile: bytesFile, ParseParams: tgParams}, 1*time.Minute)
 								os.RemoveAll(tempParseDir)
 								w.WriteHeader(http.StatusOK)
@@ -483,7 +471,7 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 							} else {
 								os.RemoveAll(tempParseDir)
 								w.WriteHeader(http.StatusOK)
-								err := json.NewEncoder(w).Encode(prepaseResponce)
+								err := json.NewEncoder(w).Encode(preparseResponce)
 								if err != nil {
 									w.WriteHeader(http.StatusOK)
 									w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))

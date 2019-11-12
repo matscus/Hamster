@@ -13,7 +13,7 @@ type Scenario struct {
 	Type         string        `json:"type"`
 	Gun          string        `json:"gun"`
 	LastModified string        `json:"lastmodified"`
-	Projects     []string      `json:"projects"`
+	Projects     string        `json:"projects"`
 	ThreadGroups []ThreadGroup `json:"threadGroups"`
 }
 

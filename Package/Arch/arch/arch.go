@@ -75,7 +75,7 @@ func (a Arch) Decompress(file io.Reader, dst string) (err error) {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
+				if err := os.MkdirAll(target, 0750); err != nil {
 					return err
 				}
 			}
@@ -87,7 +87,7 @@ func (a Arch) Decompress(file io.Reader, dst string) (err error) {
 			if _, err := io.Copy(fileToWrite, tr); err != nil {
 				return err
 			}
-			fileToWrite.Close()
+			defer fileToWrite.Close()
 		}
 	}
 	return nil
