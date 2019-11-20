@@ -335,7 +335,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if len(runsgen) == 0 {
-			scn.LastRunsParams.Store(s.Name+s.Projects[0], s)
+			scn.LastRunsParams.Store(s.Name+s.Projects, s)
 			scn.RunsGenerators.Store(s.Name, s)
 			err = s.Start()
 			if err != nil {
