@@ -71,10 +71,10 @@ func InitData() (err error) {
 	GetResponseAllData.Generators = make([]hosts.Host, 0, l)
 	for i := 0; i < l; i++ {
 		var g hosts.Host
-		t := gen[i]
-		id, _ := strconv.Atoi(t[0])
-		g.ID = int64(id)
-		g.Host = t[1]
+		g.ID = gen[i].ID
+		g.Host = gen[i].Host
+		g.Type = gen[i].Type
+		g.Projects = gen[i].Projects
 		_, ok := RunsGenerators.Load(g.Host)
 		if ok {
 			g.State = "IsBusy"
