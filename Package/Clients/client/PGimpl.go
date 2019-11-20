@@ -246,25 +246,36 @@ func (c PGClient) GetLastScenarioID() (id int64, err error) {
 }
 
 //GetAllGenerators - return all generators info.
-func (c PGClient) GetAllGenerators() ([][]string, error) {
-	var ID, host string
-	res := make([][]string, 0, 5)
+
+func (c PGClient) GetAllGenerators() ([]subset.AllHost, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select id, ip from tHosts where host_type='generator'")
+	rows, err := db.Query("select id, ip, host_type from tHosts where host_type='generator'")
 	if err != nil {
 		return nil, err
 	}
+	res := make([]subset.AllHost, 0, 20)
 	for rows.Next() {
-		data := make([]string, 2, 2)
-		err = rows.Scan(&ID, &host)
+		h := subset.AllHost{}
+		err = rows.Scan(&h.ID, &h.Host, &h.Type)
 		if err != nil {
 			return nil, err
+		} else {
+			rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from thostprojects where host_id=$1)", h.ID)
+			if err != nil {
+				return nil, err
+			}
+			for rowsProjects.Next() {
+				var project string
+				err = rowsProjects.Scan(&project)
+				if err != nil {
+					return nil, err
+				}
+				h.Projects = append(h.Projects, project)
+			}
 		}
-		data[0] = ID
-		data[1] = host
-		res = append(res, data)
+		res = append(res, h)
 	}
-	return res, err
+	return res, nil
 }
 
 //GetLastGeneratorsID - return last generator id

@@ -25,7 +25,7 @@ type PGClient interface {
 	UpdateScenario(id int64, name string, typeTest string, gun string, projects string, params string) (err error)
 	DeleteScenario(id int64) (err error)
 	//Generators
-	GetAllGenerators() (generators [][]string, err error)
+	GetAllGenerators() ([]AllHost, error)
 	GetLastGeneratorsID() (ID int64, err error)
 	//hosts
 	GetAllHosts() ([]AllHost, error)
