@@ -8,7 +8,7 @@ import (
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
-//GetAllHosts -  handle function, for get new token
+//GetAllHosts -  handle function, for get all hosts
 func GetAllHosts(w http.ResponseWriter, r *http.Request) {
 	allhosts, err := client.PGClient{}.New().GetAllHosts()
 	if err != nil {
