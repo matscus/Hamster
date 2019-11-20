@@ -15,10 +15,10 @@ import (
 
 //StartRequest - struct request for start scenario
 type StartRequest struct {
-	Name       string   `json:"name"`
-	Type       string   `json:"type"`
-	Gun        string   `json:"gun"`
-	Projects   []string `json:"projects"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Gun        string `json:"gun"`
+	Projects   string `json:"projects"`
 	Generators []hosts.Host
 	Params     []scenario.ThreadGroup
 }
@@ -42,7 +42,7 @@ func (s *StartRequest) Start() error {
 					str = str + "-D" + v1.Name + "=" + v1.Value
 				}
 			}
-			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
+			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
 			err = pgclient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
@@ -65,7 +65,7 @@ func (s *StartRequest) Start() error {
 					}
 				}
 				err = pgclient.SetStartTest(s.Name, s.Type)
-				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
+				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
 				if err != nil {
 					return err
 				}
@@ -81,7 +81,7 @@ func (s *StartRequest) Start() error {
 				}
 			}
 			str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
-			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
+			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
 			err = pgclient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
@@ -104,7 +104,7 @@ func (s *StartRequest) Start() error {
 					}
 				}
 				str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
-				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects[0] + "/" + s.Gun + "/"
+				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
 				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 			}
 			err = pgclient.SetStartTest(s.Name, s.Type)
