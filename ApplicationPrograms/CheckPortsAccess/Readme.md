@@ -10,7 +10,7 @@ Multi_hosts:
 
 ##### Block Single_host
 if you need to check only one host, or to multiple hosts, on different ports,can be filled in this way:
-###### Example
+##### Example
 Single_host:
   - 
     host: 'yandex.ru'
