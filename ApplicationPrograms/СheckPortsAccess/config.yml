@@ -1,0 +1,10 @@
+Multi_hosts:
+    hosts: [ya.ru,google.ru,localhost]
+    ports: [22,443,500]
+Single_host:
+  - 
+    hosts: 'yandex.ru'
+    ports: [444,333]
+  - 
+    hosts: 'google.com'
+    ports: [444,333,]
