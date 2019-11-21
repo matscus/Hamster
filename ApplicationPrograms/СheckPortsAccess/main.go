@@ -17,8 +17,8 @@ type config struct {
 		Ports []string `yaml:"ports"`
 	} `yaml:"Multi_hosts"`
 	SingleHost []struct {
-		Hosts string `yaml:"hosts"`
-		Ports []int  `yaml:"ports"`
+		Hosts string   `yaml:"hosts"`
+		Ports []string `yaml:"ports"`
 	} `yaml:"Single_host"`
 }
 type result struct {
@@ -52,8 +52,23 @@ func main() {
 			}
 		}
 	}
+	for _, host := range config.SingleHost {
+		for _, port := range host.Ports {
+			_, err = d.Dial("tcp", host.Hosts+":"+port)
+			if err != nil {
+				ok := os.IsTimeout(err)
+				if ok {
+					res = append(res, result{host: host.Hosts, port: port, status: "Fail"})
+				} else {
+					res = append(res, result{host: host.Hosts, port: port, status: "Pass"})
+				}
+			} else {
+				res = append(res, result{host: host.Hosts, port: port, status: "Pass"})
+			}
+		}
+	}
 	for _, v := range res {
-		fmt.Printf("Host: %s port: %s status %s\n", v.host, v.port, v.status)
+		fmt.Printf("Host: %s, port: %s, status %s\n", v.host, v.port, v.status)
 	}
 	fmt.Println("complited")
 }

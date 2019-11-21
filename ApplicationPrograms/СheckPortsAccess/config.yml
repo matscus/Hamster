@@ -7,4 +7,4 @@ Single_host:
     ports: [444,333]
   - 
     hosts: 'google.com'
-    ports: [444,333,]
+    ports: [444,333,443]
