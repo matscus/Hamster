@@ -6,7 +6,7 @@ check each host in the Hosts array by all ports in the array Ports.
 //Multi_hosts:
 //    hosts: [ya.ru,google.ru,localhost]
 //    ports: [22,443,500]
-
+ 
 
 ##### Block Single_host
 if you need to check only one host, or to multiple hosts, on different ports,can be filled in this way:
