@@ -30,6 +30,7 @@ func main() {
 	r.HandleFunc("/api/v1/admins/users", middleware.AdminsMiddleware(handlers.Users)).Methods("POST", "PUT", "DELETE", "OPTIONS")
 	r.HandleFunc("/api/v1/admins/changepassword", middleware.AdminsMiddleware(handlers.ChangePassword)).Methods("POST", "OPTIONS")
 	r.HandleFunc("/api/v1/admins/getallhosts", middleware.AdminsMiddleware(handlers.GetAllHosts)).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/v1/admins/getallhostswithproject", middleware.AdminsMiddleware(handlers.GetAllHostsWithProject)).Methods("GET", "OPTIONS").Queries("project", "{project}")
 	r.HandleFunc("/api/v1/admins/hosts", middleware.AdminsMiddleware(handlers.Hosts)).Methods("POST", "PUT", "DELETE", "OPTIONS")
 	r.HandleFunc("/api/v1/admins/getallprojects", middleware.AdminsMiddleware(handlers.GetAllProjects)).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/v1/admins/projects", middleware.AdminsMiddleware(handlers.Projects)).Methods("POST", "PUT", "DELETE", "OPTIONS")
