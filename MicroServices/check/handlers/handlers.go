@@ -28,23 +28,23 @@ type WS struct {
 func Ws(w http.ResponseWriter, r *http.Request) {
 	c, err := client.NewWebSocketUpgrader(w, r)
 	if err != nil {
-		log.Print("new upgrade:", err)
+		log.Printf("[ERROR] Not created new WS upgrader %s", err.Error())
 	}
 	defer c.Close()
 	_, message, err := c.ReadMessage()
 	if err != nil {
-		log.Print("read token :", err)
+		log.Printf("[ERROR] Token error %s", err.Error())
 	}
 	ok := jwttoken.Parse(string(message))
 	if ok {
 		datachan := make(chan *[]service.Service, 10)
 		_, message, err = c.ReadMessage()
 		if err != nil {
-			log.Print("read message :", err)
+			log.Printf("[ERROR] Not Read message: %s", err.Error())
 		}
 		alldata, err := check.InitGetResponseAllData(string(message))
 		if err != nil {
-			log.Print("GetService:", err)
+			log.Printf("[ERROR] Get service error: %s", err.Error())
 		}
 		datachan <- alldata
 		go func(datachan chan *[]service.Service) {
@@ -52,8 +52,11 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 			for {
 				_, message, err = c.ReadMessage()
 				if err != nil {
-					c.Close()
-					log.Print("upgrade:", err)
+					errClose := c.Close()
+					if errClose != nil {
+						log.Printf("[ERROR] WS Close: %s", err.Error())
+					}
+					log.Printf("[ERROR] upgrade : %s", err.Error())
 					break outer
 				}
 				alldata, err := check.InitGetResponseAllData(string(message))
@@ -71,16 +74,22 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 				res, err := check.CheckStend(data)
 				err = websocket.WriteJSON(c, res)
 				if err != nil {
-					c.Close()
-					log.Println("Error chan: ", err.Error())
+					errClose := c.Close()
+					if errClose != nil {
+						log.Printf("[ERROR] WS Close: %s", err.Error())
+					}
+					log.Printf("[ERROR] Chan : %s", err.Error())
 					break outer
 				}
 			default:
 				res, err := check.CheckStend(data)
 				err = websocket.WriteJSON(c, res)
 				if err != nil {
-					c.Close()
-					log.Println("Error def: ", err.Error())
+					errClose := c.Close()
+					if errClose != nil {
+						log.Printf("[ERROR] WS Close: %s", err.Error())
+					}
+					log.Printf("[ERROR] WS Default: %s", err.Error())
 					break outer
 				}
 			}

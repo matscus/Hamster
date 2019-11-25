@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Users/users"
@@ -32,38 +33,60 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+		}
+		return
 	}
 	u := user.New()
 	res, err := u.CheckUser()
 	if !res {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-	} else {
-		ok, err := u.CheckPasswordExp()
+		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+		}
+		return
+	}
+	ok, err := u.CheckPasswordExp()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+		}
+		return
+	}
+	if ok {
+		token, err = u.NewTokenString(false)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		} else {
-			if ok {
-				token, err = u.NewTokenString(false)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				} else {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("{\"Token\":\"" + token + "\"}"))
-				}
-			} else {
-				token, err = u.NewTokenString(true)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				} else {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("{\"Token\":\"" + token + "\"}"))
-				}
+			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			if errWrite != nil {
+				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 			}
+			return
 		}
+		w.WriteHeader(http.StatusOK)
+		_, errWrite := w.Write([]byte("{\"Token\":\"" + token + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Token created, but Not Writing to ResponseWriter due: %s", errWrite.Error())
+		}
+		return
+	}
+	token, err = u.NewTokenString(true)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+		}
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, errWrite := w.Write([]byte("{\"Token\":\"" + token + "\"}"))
+	if errWrite != nil {
+		log.Printf("[ERROR] Token created, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 	}
 }
