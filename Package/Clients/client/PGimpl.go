@@ -2,6 +2,7 @@ package client
 
 import (
 	"database/sql"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -157,7 +158,7 @@ func (c PGClient) GetScenarioName(id int64) (res string, err error) {
 //CheckScenario - Check scenario, if exist return true, if not exist return fasle
 func (c PGClient) CheckScenario(name string, gun string, projects string) (res bool, err error) {
 	var tempname string
-	err = db.QueryRow("select name from  tScenarios where name=$1 and gun_type=$2 and projects=$3", name, gun, projects).Scan(&tempname)
+	err = db.QueryRow("select name from  tScenarios where name=$1 and gun_type=$2 and project_name=$3", name, gun, projects).Scan(&tempname)
 	if err != nil {
 		return false, err
 	}
@@ -496,9 +497,8 @@ func (c PGClient) GetProjectsIDtoString(projects []string) (ids []string, err er
 		err = rows.Scan(&id)
 		if err != nil {
 			return nil, err
-		} else {
-			ids = append(ids, strconv.Itoa(id))
 		}
+		ids = append(ids, strconv.Itoa(id))
 	}
 	return ids, nil
 }
@@ -516,19 +516,57 @@ func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
 		err = rows.Scan(&h.ID, &h.Host, &h.Type, &h.User)
 		if err != nil {
 			return nil, err
-		} else {
-			rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from thostprojects where host_id=$1)", h.ID)
+		}
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from thostprojects where host_id=$1)", h.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var project string
+			err = rowsProjects.Scan(&project)
 			if err != nil {
 				return nil, err
 			}
-			for rowsProjects.Next() {
-				var project string
-				err = rowsProjects.Scan(&project)
-				if err != nil {
-					return nil, err
-				}
-				h.Projects = append(h.Projects, project)
+			h.Projects = append(h.Projects, project)
+		}
+
+		res = append(res, h)
+	}
+	return res, nil
+}
+
+//GetAllHostsWithProject - func return all hosts
+func (c PGClient) GetAllHostsWithProject(project string) ([]subset.AllHost, error) {
+	hostIDs := make([]int64, 0, 0)
+	rows, err := db.Query("select host_id from tHostProjects where project_id in(select id from tProjects where name=$1)", project)
+	for rows.Next() {
+		var hostID int64
+		err = rows.Scan(&hostID)
+		if err != nil {
+			return nil, err
+		}
+		hostIDs = append(hostIDs, hostID)
+	}
+	res := make([]subset.AllHost, 0, 20)
+	rows, err = db.Query("select id,ip,host_type,users from tHosts where id = any($1)", pg.Array(hostIDs))
+	log.Println("===== ", err)
+	for rows.Next() {
+		h := subset.AllHost{}
+		err = rows.Scan(&h.ID, &h.Host, &h.Type, &h.User)
+		if err != nil {
+			return nil, err
+		}
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from thostprojects where host_id=$1)", h.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var project string
+			err = rowsProjects.Scan(&project)
+			if err != nil {
+				return nil, err
 			}
+			h.Projects = append(h.Projects, project)
 		}
 		res = append(res, h)
 	}
@@ -546,7 +584,7 @@ func (c PGClient) NewHost(ip string, user string, host_type string, projects []s
 
 //UpdateHost - update host values to table  scenarios
 func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string) (err error) {
-	_, err = db.Exec("UPDATE hosts SET ip = $1 host_type=$2 Users=$3  where id= $4", ip, host_type, user, id)
+	_, err = db.Exec("UPDATE hosts SET ip = $1, host_type=$2, Users=$3  where id= $4", ip, host_type, user, id)
 	if err != nil {
 		return err
 	}
@@ -591,7 +629,16 @@ func (c PGClient) GetAllProjects() ([]subset.AllProjects, error) {
 
 //NewProject - insert new projects from database
 func (c PGClient) NewProject(project string) (err error) {
-	_, err = db.Exec("insert into tProjects (name)values($1)", project)
+	_, err = db.Exec("insert into tProjects (name,status)values($1,active)", project)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateProject - insert new projects from database
+func (c PGClient) UpdateProject(id int64, project string, status string) (err error) {
+	_, err = db.Exec("update tProjects SET name=$2,status=$3", id, project, status)
 	if err != nil {
 		return err
 	}

@@ -29,6 +29,7 @@ type PGClient interface {
 	GetLastGeneratorsID() (ID int64, err error)
 	//hosts
 	GetAllHosts() ([]AllHost, error)
+	GetAllHostsWithProject(project string) ([]AllHost, error)
 	HostIfExist(ip string) (bool, error)
 	NewHost(ip string, user string, host_type string, projects []string) (err error)
 	UpdateHost(id int64, ip string, host_type string, user string) (err error)
@@ -52,6 +53,7 @@ type PGClient interface {
 	//projects
 	GetAllProjects() ([]AllProjects, error)
 	NewProject(project string) (err error)
+	UpdateProject(id int64, project string, status string) (err error)
 	DeleteProject(id int64) (err error)
 
 	//role

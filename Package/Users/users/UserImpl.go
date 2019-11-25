@@ -70,7 +70,7 @@ func (u *User) CheckUser() (res bool, err error) {
 	return false, err
 }
 
-//CheckUser - func for check PasswordExp (for )validation of user token)
+//CheckPasswordExp - func for check PasswordExp (for )validation of user token)
 func (u *User) CheckPasswordExp() (res bool, err error) {
 	exp, err := client.PGClient{}.New().GetUserPasswordExp(u.User)
 	t, _ := time.Parse(time.RFC3339, exp)
