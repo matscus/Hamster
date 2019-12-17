@@ -48,10 +48,11 @@ type AllHost struct {
 	Projects []string `json:"projects"`
 }
 
-//AllProject - struct for response all Projects data
+//AllProjects - struct for response all Projects data
 type AllProjects struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
 }
 
 //AllRoles struct for return all roles
