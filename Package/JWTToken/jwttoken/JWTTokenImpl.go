@@ -87,3 +87,16 @@ func IsAdmin(t string) bool {
 	}
 	return false
 }
+
+//GetUser - func to parse token and check to valid
+func GetUser(t string) string {
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("KEY")), nil
+	})
+	if err == nil && token.Valid {
+		claims := token.Claims.(jwt.MapClaims)
+		role := claims["user"]
+		return role.(string)
+	}
+	return ""
+}
