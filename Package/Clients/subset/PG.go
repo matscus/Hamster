@@ -8,7 +8,7 @@ type PGClient interface {
 	SetStartTest(testName string, testType string) error
 	SetStopTest(runID string) error
 	//services
-	NewService(name string, host string, uri string, type_service string, runSTR string, projects []string) (err error)
+	NewService(name string, host string, uri string, typeService string, runSTR string, projects []string) (err error)
 	GetAllServices() (*[]AllService, error)
 	GetLastServiceID() (ID int64, err error)
 	GetProjectServices(project string) (*[]AllService, error)
@@ -31,8 +31,8 @@ type PGClient interface {
 	GetAllHosts() ([]AllHost, error)
 	GetAllHostsWithProject(project string) ([]AllHost, error)
 	HostIfExist(ip string) (bool, error)
-	NewHost(ip string, user string, host_type string, projects []string) (err error)
-	UpdateHost(id int64, ip string, host_type string, user string) (err error)
+	NewHost(ip string, user string, hostType string, projects []string) (err error)
+	UpdateHost(id int64, ip string, hostType string, user string) (err error)
 	DeleteHost(id int64) (err error)
 	UpdatetHostProjects(id int64, projects []string) error
 	//users
@@ -55,7 +55,6 @@ type PGClient interface {
 	NewProject(project string) (err error)
 	UpdateProject(id int64, project string, status string) (err error)
 	DeleteProject(id int64) (err error)
-
 	//role
 	NewRole(role string) (err error)
 	UpdateRole(id int64, role string) (err error)
