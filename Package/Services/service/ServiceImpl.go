@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/matscus/Hamster/Package/Clients/client"
@@ -27,7 +26,6 @@ func (s *Service) Run(user string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(s.RunSTR)
 	return client.RunNoWait(s.Host, s.RunSTR)
 }
 
@@ -45,7 +43,7 @@ func (s *Service) Stop(user string) error {
 	return err
 }
 
-//InsertToDB - insert new generator to database
+//Create - insert new generator to database
 func (s *Service) Create() error {
 	return client.PGClient{}.New().NewService(s.Name, s.Host, s.URI, s.Type, s.RunSTR, s.Projects)
 }
