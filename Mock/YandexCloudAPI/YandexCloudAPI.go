@@ -20,10 +20,12 @@ var (
 	scoreValue = []float64{0.7622091841744798, 0.4661361235810615, 0.5694269819653356}
 )
 
+//IntRange - struct from rundom
 type IntRange struct {
 	min, max int
 }
 
+//ScoresRequest - struct from scores request
 type ScoresRequest struct {
 	ResponseIds struct {
 		RequestID string `json:"request_id"`
@@ -45,17 +47,22 @@ type ScoresRequest struct {
 	} `json:"scores"`
 }
 
+//ScoresResponse - struct from scores responce
 type ScoresResponse struct {
 	ResponseIds struct {
 		RequestID string `json:"request_id"`
 	} `json:"response_ids"`
 	Scores []Scores `json:"scores"`
 }
+
+//Scores - struct from scores
 type Scores struct {
 	ScoreName  string  `json:"score_name"`
 	ScoreValue float64 `json:"score_value,omitempty"`
 	HasScore   bool    `json:"has_score"`
 }
+
+//Errors - struct from error auth
 type Errors struct {
 	Code              string `json:"code"`
 	InternalRequestID string `json:"internal_request_id"`
@@ -106,6 +113,8 @@ func scores(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+//NextRandom - return nexе rundom value
 func (ir *IntRange) NextRandom(r *rand.Rand) int {
 	return r.Intn(ir.max-ir.min+1) + ir.min
 }
