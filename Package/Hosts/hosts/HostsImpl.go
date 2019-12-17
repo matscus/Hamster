@@ -1,6 +1,8 @@
 package hosts
 
 import (
+	"os/exec"
+
 	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Hosts/subset"
 )
@@ -11,21 +13,27 @@ type Host struct {
 	Host     string   `json:"host"`
 	Type     string   `json:"type,omitempty"`
 	User     string   `json:"user,omitempty"`
+	Password string   `json:"password,omitempty"`
 	State    string   `json:"state"`
 	Projects []string `json:"projects"`
 }
 
 //New - func to return new host interface
-func (c Host) New() subset.Host {
+func (h Host) New() subset.Host {
 	var host subset.Host
 	host = Host{}
 	return host
 }
 
-//Create - func for insert new generators, from database
+//Create - func for insert new host, from database
 func (h Host) Create() error {
+	cmd := exec.Command("sshpass", "-p", h.Password, "ssh-copy-id", h.User+"@"+h.Host)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
 	pgclient := client.PGClient{}.New()
-	err := pgclient.NewHost(h.Host, h.Type, h.User, h.Projects)
+	err = pgclient.NewHost(h.Host, h.Type, h.User, h.Projects)
 	if err != nil {
 		return err
 	}
@@ -46,12 +54,12 @@ func (h Host) Update() error {
 	return client.UpdatetHostProjects(h.ID, projectsID)
 }
 
-//DeleteHost - func for udelete host
+//Delete - func for udelete host
 func (h Host) Delete() error {
 	return client.PGClient{}.New().DeleteHost(h.ID)
 }
 
-//IfExist
+//IfExist -
 func (h Host) IfExist() (bool, error) {
 	return client.PGClient{}.New().HostIfExist(string(h.ID))
 }
