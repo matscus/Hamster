@@ -2,7 +2,6 @@ package client
 
 import (
 	"database/sql"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -327,14 +326,14 @@ func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, erro
 		}
 		serviceIDs = append(serviceIDs, tempID)
 	}
-	rows, err = db.Query("select,name,host,uri,type,runstr from tServices where id =any($1)", pg.Array(serviceIDs))
+	rows, err = db.Query("select id,name,host,uri,type from tServices where id =any($1)", pg.Array(serviceIDs))
 	if err != nil {
 		return nil, err
 	}
 	res := make([]subset.AllService, 0, 200)
 	for rows.Next() {
 		t := subset.AllService{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type, pq.Array(&t.Projects)); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type); err != nil {
 			return &res, err
 		}
 		res = append(res, t)
@@ -549,7 +548,6 @@ func (c PGClient) GetAllHostsWithProject(project string) ([]subset.AllHost, erro
 	}
 	res := make([]subset.AllHost, 0, 20)
 	rows, err = db.Query("select id,ip,host_type,users from tHosts where id = any($1)", pg.Array(hostIDs))
-	log.Println("===== ", err)
 	for rows.Next() {
 		h := subset.AllHost{}
 		err = rows.Scan(&h.ID, &h.Host, &h.Type, &h.User)
@@ -574,8 +572,8 @@ func (c PGClient) GetAllHostsWithProject(project string) ([]subset.AllHost, erro
 }
 
 //NewHost - insert new host from database
-func (c PGClient) NewHost(ip string, user string, host_type string, projects []string) (err error) {
-	_, err = db.Query("select * from new_host_function(($1,$2,$3,$4)", ip, host_type, user, pg.Array(projects))
+func (c PGClient) NewHost(ip string, user string, hostType string, projects []string) (err error) {
+	_, err = db.Query("select * from new_host_function(($1,$2,$3,$4)", ip, hostType, user, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -583,8 +581,8 @@ func (c PGClient) NewHost(ip string, user string, host_type string, projects []s
 }
 
 //UpdateHost - update host values to table  scenarios
-func (c PGClient) UpdateHost(id int64, ip string, host_type string, user string) (err error) {
-	_, err = db.Exec("UPDATE hosts SET ip = $1, host_type=$2, Users=$3  where id= $4", ip, host_type, user, id)
+func (c PGClient) UpdateHost(id int64, ip string, hostType string, user string) (err error) {
+	_, err = db.Exec("UPDATE hosts SET ip = $1, host_type=$2, Users=$3  where id= $4", ip, hostType, user, id)
 	if err != nil {
 		return err
 	}
@@ -614,14 +612,14 @@ func (c PGClient) HostIfExist(ip string) (bool, error) {
 //GetAllProjects - func return all projects
 func (c PGClient) GetAllProjects() ([]subset.AllProjects, error) {
 	var rows *sql.Rows
-	rows, err := db.Query("select id,name from tProjects")
+	rows, err := db.Query("select id,name,status from tProjects")
 	if err != nil {
 		return nil, err
 	}
 	res := make([]subset.AllProjects, 0, 20)
 	for rows.Next() {
 		p := subset.AllProjects{}
-		rows.Scan(&p.ID, &p.Name)
+		rows.Scan(&p.ID, &p.Name, &p.Status)
 		res = append(res, p)
 	}
 	return res, nil
