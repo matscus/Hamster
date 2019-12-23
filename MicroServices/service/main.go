@@ -55,15 +55,16 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/api/v1/service/start", middleware.Middleware(handlers.StartSevice)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/service/stop", middleware.Middleware(handlers.StopService)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/service", middleware.Middleware(handlers.GetAllServices)).Methods("GET", "OPTIONS").Queries("project", "{project}")
-	r.HandleFunc("/api/v1/service/update", middleware.Middleware(handlers.UpdateServiceHandle)).Methods("PUT", "OPTIONS")
-	r.HandleFunc("/api/v1/service/new", middleware.Middleware(handlers.NewServiceHandle)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/service/delete", middleware.Middleware(handlers.DeleteService)).Methods("DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/service/newfile", middleware.Middleware(handlers.NewFile)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/service/file", middleware.Middleware(handlers.File)).Methods("GET", "DELETE", "OPTIONS").Queries("servicetype", "{servicetype}", "servicename", "{servicename}")
+	r.HandleFunc("/api/v1/service/start", middleware.Middleware(handlers.StartSevice)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/stop", middleware.Middleware(handlers.StopService)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/service", middleware.Middleware(handlers.GetAllServices)).Methods(http.MethodGet, http.MethodOptions).Queries("project", "{project}")
+	r.HandleFunc("/api/v1/service/update", middleware.Middleware(handlers.UpdateServiceHandle)).Methods(http.MethodPut, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/new", middleware.Middleware(handlers.NewServiceHandle)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/delete", middleware.Middleware(handlers.DeleteService)).Methods(http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/newfile", middleware.Middleware(handlers.NewFile)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/file", middleware.Middleware(handlers.File)).Methods(http.MethodGet, http.MethodDelete, http.MethodOptions).Queries("servicetype", "{servicetype}", "servicename", "{servicename}")
 	http.Handle("/api/v1/", r)
+	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
 		case "https":

@@ -43,9 +43,9 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/api/v1/auth/new", handlers.Middleware(handlers.GetToken)).Methods("POST", "OPTIONS")
+	r.HandleFunc("/api/v1/auth/new", handlers.Middleware(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
 	http.Handle("/api/v1/auth/", r)
-	log.Println("ListenAndServe: " + listenport)
+	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
 		case "https":

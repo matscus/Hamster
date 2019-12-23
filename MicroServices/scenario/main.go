@@ -54,16 +54,17 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/api/v1/scenario/start", middleware.Middleware(handlers.StartScenario)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/scenario/stop", middleware.Middleware(handlers.StopScenario)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/scenario/new", middleware.Middleware(handlers.NewScenario)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.GetScenarios)).Methods("GET", "OPTIONS").Queries("project", "{project}")
-	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.UpdateOrDeleteScenario)).Methods("PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods("GET", "OPTIONS").Queries("name", "{name}", "project", "{project}")
+	r.HandleFunc("/api/v1/scenario/start", middleware.Middleware(handlers.StartScenario)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/scenario/stop", middleware.Middleware(handlers.StopScenario)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/scenario/new", middleware.Middleware(handlers.NewScenario)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.GetScenarios)).Methods(http.MethodGet, http.MethodOptions).Queries("project", "{project}")
+	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.UpdateOrDeleteScenario)).Methods(http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods(http.MethodGet, http.MethodOptions).Queries("name", "{name}", "project", "{project}")
 	r.HandleFunc("/api/v1/scenario/ws", handlers.Ws)
-	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", handlers.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods("GET", "OPTIONS") //.Headers("Content-Type", "application/json")
-	r.HandleFunc("/api/v1/scenario/precheck", middleware.Middleware(handlers.PreCheckScenario)).Methods("POST", "OPTIONS")
+	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", handlers.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/v1/scenario/precheck", middleware.Middleware(handlers.PreCheckScenario)).Methods(http.MethodPost, http.MethodOptions)
 	http.Handle("/api/v1/", r)
+	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
 		case "https":

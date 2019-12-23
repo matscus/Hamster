@@ -45,17 +45,18 @@ func main() {
 		Handler:      r,
 	}
 
-	r.HandleFunc("/api/v1/admins/getallusers", middleware.AdminsMiddleware(handlers.GetAllUsers)).Methods("GET", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/users", middleware.AdminsMiddleware(handlers.Users)).Methods("POST", "PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/changepassword", middleware.ChPassMiddleware(handlers.ChangePassword)).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/getallhosts", middleware.AdminsMiddleware(handlers.GetAllHosts)).Methods("GET", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/getallhostswithproject", middleware.AdminsMiddleware(handlers.GetAllHostsWithProject)).Methods("GET", "OPTIONS").Queries("project", "{project}")
-	r.HandleFunc("/api/v1/admins/hosts", middleware.AdminsMiddleware(handlers.Hosts)).Methods("POST", "PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/getallprojects", middleware.AdminsMiddleware(handlers.GetAllProjects)).Methods("GET", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/projects", middleware.AdminsMiddleware(handlers.Projects)).Methods("POST", "PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/roles", middleware.AdminsMiddleware(handlers.Roles)).Methods("POST", "PUT", "DELETE", "OPTIONS")
-	r.HandleFunc("/api/v1/admins/getallroles", middleware.AdminsMiddleware(handlers.GetAllRoles)).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/v1/admins/getallusers", middleware.AdminsMiddleware(handlers.GetAllUsers)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/users", middleware.AdminsMiddleware(handlers.Users)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/changepassword", middleware.ChPassMiddleware(handlers.ChangePassword)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/getallhosts", middleware.AdminsMiddleware(handlers.GetAllHosts)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/getallhostswithproject", middleware.AdminsMiddleware(handlers.GetAllHostsWithProject)).Methods(http.MethodGet, http.MethodOptions).Queries("project", "{project}")
+	r.HandleFunc("/api/v1/admins/hosts", middleware.AdminsMiddleware(handlers.Hosts)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/getallprojects", middleware.AdminsMiddleware(handlers.GetAllProjects)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/projects", middleware.AdminsMiddleware(handlers.Projects)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/roles", middleware.AdminsMiddleware(handlers.Roles)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/getallroles", middleware.AdminsMiddleware(handlers.GetAllRoles)).Methods(http.MethodGet, http.MethodOptions)
 	http.Handle("/api/v1/admins/", r)
+	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
 		case "https":
