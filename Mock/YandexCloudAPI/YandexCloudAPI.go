@@ -123,7 +123,7 @@ func main() {
 	flag.StringVar(&pemPath, "pempath", "./server.pem", "server sert")
 	flag.StringVar(&keyPath, "keypath", "./server.key", "server sert")
 	flag.StringVar(&mode, "mode", "https", "server mode")
-	flag.StringVar(&listenport, "port", ":9443", "port to Listen")
+	flag.StringVar(&listenport, "port", ":9999", "port to Listen")
 	flag.Parse()
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/accounts/partner_a/scores", scores).Methods("POST")
