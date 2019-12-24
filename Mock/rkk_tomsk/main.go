@@ -47,7 +47,8 @@ func main() {
 	r.HandleFunc("/ICreditCardService/CreditCardAccept", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 	r.HandleFunc("/ICreditCardService/CreditCardContracts", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 	r.HandleFunc("/ICreditCardService/CreditCardReject", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	http.Handle("/ICreditCardService/", r)
+	r.HandleFunc("/WcfCreditCardService/CreditCardService.svc", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
+	http.Handle("/", r)
 	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
