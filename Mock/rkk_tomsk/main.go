@@ -36,7 +36,7 @@ func main() {
 	flag.Parse()
 	r := mux.NewRouter()
 	srv := &http.Server{
-		Addr:         "127.0.0.1:" + listenport,
+		Addr:         "0.0.0.0:" + listenport,
 		WriteTimeout: writeTimeout,
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
