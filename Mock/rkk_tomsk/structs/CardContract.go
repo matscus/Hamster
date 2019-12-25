@@ -20,8 +20,8 @@ type CreditContractRequest struct {
 	Requester    string   `xml:"Requester"`
 	Process      string   `xml:"Process"`
 }
-type CreditContractResponse struct {
-	XMLName    xml.Name `xml:"CreditContractResponse"`
+type CreditCardContractsResponse struct {
+	XMLName    xml.Name `xml:"CreditCardContractsResponse xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"`
 	Text       string   `xml:",chardata"`
 	Xsd        string   `xml:"xsd,attr"`
 	Xsi        string   `xml:"xsi,attr"`
