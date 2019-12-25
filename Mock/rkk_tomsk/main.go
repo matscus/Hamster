@@ -41,12 +41,6 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/ICreditCardService/CardClaimStatus", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/ICreditCardService/ClientDataUpdate", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/ICreditCardService/CreateCreditCardClaim", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/ICreditCardService/CreditCardAccept", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/ICreditCardService/CreditCardContracts", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
-	r.HandleFunc("/ICreditCardService/CreditCardReject", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 	r.HandleFunc("/WcfCreditCardService/CreditCardService.svc", handlers.WcfCreditCardService).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 	http.Handle("/", r)
 	r.Use(mux.CORSMethodMiddleware(r))

@@ -21,19 +21,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("GPB-traceId", traceHeader)
 	}
 	w.Header().Set("Content-Type", "application/json")
-
 	w.Write(file)
 }
 
 func middleware(f http.HandlerFunc) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		start := time.Now()
 		defer func() {
 			log.Printf("[INFO] %s %s", r.URL, time.Since(start))
 		}()
-
 		f(w, r)
 	}
 }
@@ -51,12 +47,9 @@ func main() {
 	endpoint := flag.String("endpoint", "/", "endpoint")
 	pem := flag.String("pem", "./ssl/server.pem", "pem path")
 	key := flag.String("key", "./ssl/server.key", "key path")
-
 	flag.Parse()
-
 	r := mux.NewRouter()
 	r.HandleFunc(*endpoint, handler)
-
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + *port,
 		WriteTimeout: time.Second * 15,
@@ -64,9 +57,7 @@ func main() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      r,
 	}
-
 	log.Printf("[INFO] Starting mock %s://localhost:%s%s", *mode, *port, *endpoint)
-
 	switch *mode {
 	case "http":
 		log.Fatal(srv.ListenAndServe())
