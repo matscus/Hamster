@@ -90,16 +90,17 @@ func middleware() http.HandlerFunc {
 		w.Header().Set("Content-Type ", "text/xml; charset=utf-8")
 		soapaction := r.Header.Get("Soapaction")
 		switch soapaction {
-		case "http://tempuri.org/ICreditCardService/CreditCardContracts":
+		case "\"http://tempuri.org/ICreditCardService/CreditCardContracts\"":
 			handlers.CreditCardContractsHandler(w, r)
-		case "http://tempuri.org/ICreditCardService/ClientDataUpdate":
+		case "\"http://tempuri.org/ICreditCardService/ClientDataUpdate\"":
 			handlers.ClientUpdateHandler(w, r)
-		case "http://tempuri.org/ICreditCardService/CreditCardReject":
+		case "\"http://tempuri.org/ICreditCardService/CreditCardReject\"":
 			handlers.CreditClaimRejectHandler(w, r)
-		case "http://tempuri.org/ICreditCardService/CreditCardAccept":
-		case "http://tempuri.org/ICreditCardService/CardClaimStatus":
+		case "\"http://tempuri.org/ICreditCardService/CreditCardAccept\"":
+			handlers.CreditClaimAcceptHandler(w, r)
+		case "\"http://tempuri.org/ICreditCardService/CardClaimStatus\"":
 			handlers.ClaimStatusHandler(w, r)
-		case "http://tempuri.org/ICreditCardService/CreateCreditCardClaim":
+		case "\"http://tempuri.org/ICreditCardService/CreateCreditCardClaim\"":
 			handlers.CreateCardClaimRHandler(w, r)
 		}
 	}
