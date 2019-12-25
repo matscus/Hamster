@@ -25,6 +25,6 @@ type CreditContractResponse struct {
 	Text       string   `xml:",chardata"`
 	Xsd        string   `xml:"xsd,attr"`
 	Xsi        string   `xml:"xsi,attr"`
-	ReturnCode string   `xml:"ReturnCode"`
+	ReturnCode int      `xml:"ReturnCode"`
 	Message    string   `xml:"Message"`
 }

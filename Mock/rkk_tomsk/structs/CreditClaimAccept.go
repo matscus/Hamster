@@ -19,14 +19,14 @@ type CreditClaimAcceptResponse struct {
 	Text           string   `xml:",chardata"`
 	Xsd            string   `xml:"xsd,attr"`
 	Xsi            string   `xml:"xsi,attr"`
-	ReturnCode     string   `xml:"ReturnCode"`
-	InstitutionId  string   `xml:"InstitutionId"`
-	ContractReqId  string   `xml:"ContractReqId"`
-	CardReqId      string   `xml:"CardReqId"`
+	ReturnCode     int      `xml:"ReturnCode"`
+	InstitutionId  int      `xml:"InstitutionId"`
+	ContractReqId  int      `xml:"ContractReqId"`
+	CardReqId      int      `xml:"CardReqId"`
 	CardReqStatus  string   `xml:"CardReqStatus"`
-	ContractId     string   `xml:"ContractId"`
+	ContractId     int      `xml:"ContractId"`
 	ContractStatus string   `xml:"ContractStatus"`
-	ResourceId     string   `xml:"ResourceId"`
+	ResourceId     int      `xml:"ResourceId"`
 	AccNumber      string   `xml:"AccNumber"`
 	WorkDay        string   `xml:"WorkDay"`
 }

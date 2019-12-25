@@ -18,13 +18,13 @@ type CreditClaimRejectResponse struct {
 	Text              string   `xml:",chardata"`
 	Xsd               string   `xml:"xsd,attr"`
 	Xsi               string   `xml:"xsi,attr"`
-	ReturnCode        string   `xml:"ReturnCode"`
-	InstitutionId     string   `xml:"InstitutionId"`
-	ContractReqId     string   `xml:"ContractReqId"`
+	ReturnCode        int      `xml:"ReturnCode"`
+	InstitutionId     int      `xml:"InstitutionId"`
+	ContractReqId     int      `xml:"ContractReqId"`
 	ContractReqStatus string   `xml:"ContractReqStatus"`
-	CardReqId         string   `xml:"CardReqId"`
+	CardReqId         int      `xml:"CardReqId"`
 	CardReqStatus     string   `xml:"CardReqStatus"`
-	ContractId        string   `xml:"ContractId"`
+	ContractId        int      `xml:"ContractId"`
 	ContractStatus    string   `xml:"ContractStatus"`
 	WorkDay           string   `xml:"WorkDay"`
 }
