@@ -20,11 +20,30 @@ type CreditContractRequest struct {
 	Requester    string   `xml:"Requester"`
 	Process      string   `xml:"Process"`
 }
+
+// type CreditCardContractsResponse struct {
+// 	XMLName    xml.Name `xml:"CreditCardContractsResponse xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"`
+// 	Text       string   `xml:",chardata"`
+// 	Xsd        string   `xml:"xsd,attr"`
+// 	Xsi        string   `xml:"xsi,attr"`
+// 	ReturnCode int      `xml:"ReturnCode"`
+// 	Message    string   `xml:"Message"`
+// }
 type CreditCardContractsResponse struct {
-	XMLName    xml.Name `xml:"CreditCardContractsResponse xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"`
-	Text       string   `xml:",chardata"`
-	Xsd        string   `xml:"xsd,attr"`
-	Xsi        string   `xml:"xsi,attr"`
-	ReturnCode int      `xml:"ReturnCode"`
-	Message    string   `xml:"Message"`
+	XMLName       xml.Name `xml:"Envelope"`
+	Text          string   `xml:",chardata"`
+	SOAPENV       string   `xml:"SOAP-ENV,attr"`
+	EncodingStyle string   `xml:"encodingStyle,attr"`
+	Body          struct {
+		Text                        string `xml:",chardata"`
+		M                           string `xml:"xmlns:m,attr"`
+		CreditCardContractsResponse struct {
+			XMLName    xml.Name `xml:"CreditCardContractsResponse xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"`
+			Text       string   `xml:",chardata"`
+			Xsd        string   `xml:"xmlns:xsd,attr"`
+			Xsi        string   `xml:"xmlns:xsi,attr"`
+			ReturnCode int      `xml:"ReturnCode"`
+			Message    string   `xml:"Message"`
+		} `xml:"CreditCardContractsResponse"`
+	} `xml:"SOAP-ENV:Body"`
 }
