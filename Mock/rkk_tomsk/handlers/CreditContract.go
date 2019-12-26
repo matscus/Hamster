@@ -11,12 +11,13 @@ import (
 func CreditCardContractsHandler(w http.ResponseWriter, r *http.Request) {
 	var res structs.CreditCardContractsResponse
 	res.SOAPENV = "http://schemas.xmlsoap.org/soap/envelope/"
-	res.Body.CreditCardContractsResponse.ReturnCode = 1012
-	res.Text = "<?xml version=\"1.0\" encoding=\"utf-16\"?>"
-	res.Body.M = "http://www.xyz.org/quotation"
-	res.Body.CreditCardContractsResponse.Xsd = "http://www.w3.org/2001/XMLSchema"
-	res.Body.CreditCardContractsResponse.Xsi = "http://www.w3.org/2001/XMLSchema-instance"
-	res.Body.CreditCardContractsResponse.Message = "ФИО и У/Л не найдены"
+	res.Body.CreditCardContractsResponse.CreditCardContractsResult.CredInfoList.Nil = true
+	res.Body.CreditCardContractsResponse.CreditCardContractsResult.CredInfoList.Xsi = "http://www.w3.org/2001/XMLSchema-instance"
+	res.Body.CreditCardContractsResponse.CreditCardContractsResult.ReturnCode = 1012
+	res.Body.CreditCardContractsResponse.CreditCardContractsResult.Message = "ФИО и У/Л не найдены"
+	res.Body.CreditCardContractsResponse.Xmlns = "http://schemas.datacontract.org/2004/07/WcfCreditCardService"
+	res.Body.CreditCardContractsResponse.Ns2 = "http://tempuri.org/"
+	res.Body.CreditCardContractsResponse.Ns3 = "http://schemas.microsoft.com/2003/10/Serialization/"
 	resMarhal, err := xml.Marshal(res)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
