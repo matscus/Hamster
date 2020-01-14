@@ -1,7 +1,7 @@
 package subset
 
 type Service interface {
-	Create() error
+	Create(user string) error
 	Run(user string) error
 	Stop(user string) error
 	Update() error
