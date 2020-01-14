@@ -39,11 +39,11 @@ func GetScenarios(w http.ResponseWriter, r *http.Request) {
 				log.Printf("[ERROR] Scenario Encode GetResponseAllData error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 			}
 		}
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params hot found \"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-		}
+		return
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+	_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params hot found \"}"))
+	if errWrite != nil {
+		log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 	}
 }

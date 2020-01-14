@@ -50,14 +50,14 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		if errWrite != nil {
 			log.Printf("[ERROR] Scenario launched, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 		}
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		err := json.NewEncoder(w).Encode(runsgen)
-		if err != nil {
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Start scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+		return
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+	err = json.NewEncoder(w).Encode(runsgen)
+	if err != nil {
+		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode error: " + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Start scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 		}
 	}
 }

@@ -27,23 +27,23 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 						log.Printf("[ERROR] Scenario encode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 					}
 				}
-			} else {
-				w.WriteHeader(http.StatusOK)
-				nilres := scn.StartRequest{}
-				err := json.NewEncoder(w).Encode(nilres)
-				if err != nil {
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode json error: " + err.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario encode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			nilres := scn.StartRequest{}
+			err := json.NewEncoder(w).Encode(nilres)
+			if err != nil {
+				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode json error: " + err.Error() + "\"}"))
+				if errWrite != nil {
+					log.Printf("[ERROR] Scenario encode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 				}
 			}
 		}
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params not found\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-		}
+		return
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+	_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params not found\"}"))
+	if errWrite != nil {
+		log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 	}
 }

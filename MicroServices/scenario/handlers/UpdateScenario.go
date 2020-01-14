@@ -83,12 +83,12 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 				if errWrite != nil {
 					log.Printf("[ERROR] Init scenarios data error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 				}
-			} else {
-				w.WriteHeader(http.StatusOK)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario complited\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Update scenario complited, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-				}
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario complited\"}"))
+			if errWrite != nil {
+				log.Printf("[ERROR] Update scenario complited, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 			}
 			return
 		}
@@ -127,12 +127,12 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			if errWrite != nil {
 				log.Printf("[ERROR] Update done, but init data error and error Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario complited\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Update done, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-			}
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario complited\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Update done, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	case "DELETE":
 		var s scenario.Scenario
@@ -175,12 +175,12 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			if errWrite != nil {
 				log.Printf("[ERROR] Delete scenario complited, but but scenario init data error and Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Delete scenario complited\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Delete scenario complited, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-			}
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, errWrite := w.Write([]byte("{\"Message\":\"Delete scenario complited\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Delete scenario complited, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	}
 }

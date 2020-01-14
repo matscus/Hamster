@@ -114,11 +114,11 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 							if errWrite != nil {
 								log.Printf("[ERROR] Scenario Unmarshal file and remove temp dir errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 							}
-						} else {
-							_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-							if errWrite != nil {
-								log.Printf("[ERROR] Scenario Unmarshal file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-							}
+							return
+						}
+						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
+						if errWrite != nil {
+							log.Printf("[ERROR] Scenario Unmarshal file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 						}
 						return
 					}
@@ -131,11 +131,11 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 							if errWrite != nil {
 								log.Printf("[ERROR] Scenario get tread groups params  and remove temp dir errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 							}
-						} else {
-							_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-							if errWrite != nil {
-								log.Printf("[ERROR] Scenario get tread groups params error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-							}
+							return
+						}
+						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
+						if errWrite != nil {
+							log.Printf("[ERROR] Scenario get tread groups params error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 						}
 						return
 					}
@@ -197,12 +197,12 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 					log.Printf("[ERROR] Scenario - not found jmx file, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 				}
 			}
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create dir error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario create dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create dir error: " + err.Error() + "\"}"))
+		if errWrite != nil {
+			log.Printf("[ERROR] Scenario create dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 		}
 	}
 }
