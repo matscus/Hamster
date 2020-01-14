@@ -33,7 +33,11 @@ func (h Host) Create() error {
 		return err
 	}
 	pgclient := client.PGClient{}.New()
-	err = pgclient.NewHost(h.Host, h.Type, h.User, h.Projects)
+	projectIDs, err := pgclient.GetProjectsIDtoString(h.Projects)
+	if err != nil {
+		return err
+	}
+	err = pgclient.NewHost(h.Host, h.Type, h.User, projectIDs)
 	if err != nil {
 		return err
 	}
