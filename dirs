@@ -1,0 +1,15 @@
+~/hamster
+~/hamster/bins
+~/hamster/bins/mock
+~/hamster/bins/pometheus
+~/hamster/bins/grafana
+~/hamster/bins/guns
+~/hamster/bins/exporters
+~/hamster/bins/influxdb
+~/hamster/bins/microservices
+~/hamster/projects
+~/hamster/ssl
+~/hamster/guns
+~/hamster/guns/jmeter
+~/hamster/maven
+~/hamster/maven/gatling-framework
