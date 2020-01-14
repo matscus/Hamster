@@ -49,7 +49,7 @@ func main() {
 	flag.Parse()
 	r := mux.NewRouter()
 	srv := &http.Server{
-		Addr:         "127.0.0.1:" + listenport,
+		Addr:         "0.0.0.0:" + listenport,
 		WriteTimeout: writeTimeout,
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
@@ -61,10 +61,10 @@ func main() {
 	r.HandleFunc("/api/v1/scenario", middleware.Middleware(handlers.UpdateOrDeleteScenario)).Methods(http.MethodPut, http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/api/v1/scenario/lastparams", middleware.Middleware(handlers.GetLastParams)).Methods(http.MethodGet, http.MethodOptions).Queries("name", "{name}", "project", "{project}")
 	r.HandleFunc("/api/v1/scenario/ws", handlers.Ws)
-	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", handlers.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods(http.MethodGet, http.MethodOptions)
+	r.PathPrefix("/api/v1/scenario/files/").Handler(http.StripPrefix("/api/v1/scenario/files/", middleware.MiddlewareFiles(http.FileServer(http.Dir("/home/matscus/Hamster/projects/"))))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/api/v1/scenario/precheck", middleware.Middleware(handlers.PreCheckScenario)).Methods(http.MethodPost, http.MethodOptions)
 	http.Handle("/api/v1/", r)
-	r.Use(mux.CORSMethodMiddleware(r))
+	//r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
 		switch proto {
 		case "https":
