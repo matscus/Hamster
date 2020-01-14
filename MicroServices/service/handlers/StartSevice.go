@@ -30,28 +30,28 @@ func StartSevice(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			} else {
-				service.Status = "run"
-				service.Mutex.Lock()
-				serv.UpdateState(&service)
-				service.Mutex.Unlock()
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("{\"Message\":\"service start\"}"))
+				return
 			}
+			service.Status = "run"
+			service.Mutex.Lock()
+			serv.UpdateState(&service)
+			service.Mutex.Unlock()
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("{\"Message\":\"service start\"}"))
 		} else {
 			user, _ := serv.HostsAndUsers.Load(service.Host)
 			err = service.Run(user.(string))
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			} else {
-				service.Status = "run"
-				service.Mutex.Lock()
-				serv.UpdateState(&service)
-				service.Mutex.Unlock()
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("{\"Message\":\"service start\"}"))
+				return
 			}
+			service.Status = "run"
+			service.Mutex.Lock()
+			serv.UpdateState(&service)
+			service.Mutex.Unlock()
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("{\"Message\":\"service start\"}"))
 		}
 	}
 }

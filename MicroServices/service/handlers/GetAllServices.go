@@ -38,8 +38,8 @@ func GetAllServices(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			}
 		}
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\" params hot found \"}"))
+		return
 	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"Message\":\" params hot found \"}"))
 }
