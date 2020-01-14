@@ -46,16 +46,3 @@ type CreditCardContractsResponse struct {
 		} `xml:"ns2:CreditCardContractsResponse"`
 	} `xml:"SOAP-ENV:Body"`
 }
-
-// <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-//     <SOAP-ENV:Header/>
-//     <SOAP-ENV:Body>
-//         <ns2:CreditCardContractsResponse xmlns="http://schemas.datacontract.org/2004/07/WcfCreditCardService" xmlns:ns2="http://tempuri.org/" xmlns:ns3="http://schemas.microsoft.com/2003/10/Serialization/">
-//             <ns2:CreditCardContractsResult>
-//                 <CredInfoList xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
-//                 <Message>ФИО и У/Л не найдены</Message>
-//                 <ReturnCode>1012</ReturnCode>
-//             </ns2:CreditCardContractsResult>
-//         </ns2:CreditCardContractsResponse>
-//     </SOAP-ENV:Body>
-// </SOAP-ENV:Envelope>

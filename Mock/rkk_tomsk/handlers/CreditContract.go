@@ -9,6 +9,7 @@ import (
 )
 
 func CreditCardContractsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("body 1 ", r.Body)
 	var res structs.CreditCardContractsResponse
 	res.SOAPENV = "http://schemas.xmlsoap.org/soap/envelope/"
 	res.Body.CreditCardContractsResponse.CreditCardContractsResult.CredInfoList.Nil = true
