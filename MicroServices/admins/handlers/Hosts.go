@@ -31,7 +31,7 @@ func GetAllHosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GetAllHostsWithProject -
+//GetAllHostsWithProject - return all host with users projects
 func GetAllHostsWithProject(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	project, _ := params["project"]
