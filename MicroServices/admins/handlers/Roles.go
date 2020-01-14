@@ -28,7 +28,6 @@ func GetAllRoles(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 		}
 	}
-
 }
 
 //Roles -  create new Roles, update Roles and delete Roles
