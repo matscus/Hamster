@@ -177,9 +177,143 @@ func (c PGClient) DeleteScenario(id int64) (err error) {
 	return nil
 }
 
+//NewServiceBin - insert new scenario values to table  scenarios
+func (c PGClient) NewServiceBin(name string, typeService string, runSTR string, own string, projects []string) (err error) {
+	_, err = db.Query("select * from new_bins_function($1,$2,$3,$4,$5)", name, typeService, runSTR, own, pg.Array(projects))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateServiceBin - func for update bins info
+func (c PGClient) UpdateServiceBin(id int64, name string, type_service string, runSTR string, own string) (err error) {
+	_, err = db.Exec("update tBins set name=$1,set type=$2,set runstr=$3,set last_modified = to_timestamp($4),set own=$5 where id=$6", name, type_service, runSTR, time.Now(), own, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteServiceBin - delete row from table tBins
+func (c PGClient) DeleteServiceBin(id int64) (err error) {
+	_, err = db.Exec("delete tBins where id=$1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//GetAllServiceBinsNoSort - return all servicebins info
+func (c PGClient) GetAllServiceBinsNoSort(projectIDs []string) (*[]subset.AllServiceBinsNoSort, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select distinct tbins.id,tbins.name,tbins.type,tbins.runstr,tbins.own,tbins.last_modified from tbins  left join tServiceBinProjects on tbins.id=tServiceBinProjects.bin_id where tServiceBinProjects.id is null or tServiceBinProjects.project_id = any($1)", pg.Array(projectIDs))
+	res := make([]subset.AllServiceBinsNoSort, 0, 20)
+	if rows == nil {
+		return &res, nil
+	}
+	for rows.Next() {
+		t := subset.AllServiceBinsNoSort{}
+		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.RunSTR, &t.Owner, &t.LastModified); err != nil {
+			return &res, err
+		}
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from tServiceBinProjects where bin_id=$1)", t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var project string
+			err = rowsProjects.Scan(&project)
+			if err != nil {
+				return nil, err
+			}
+			t.Projects = append(t.Projects, project)
+		}
+		res = append(res, t)
+	}
+	return &res, err
+}
+
+//GetAllServiceBinsByOwner - return all servicebins info
+func (c PGClient) GetAllServiceBinsByOwner(projectIDs []string) (*[]subset.AllServiceBinsByOwner, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select distinct tbins.id,tbins.name,tbins.type,tbins.runstr,tbins.own,tbins.last_modified from tbins  left join tServiceBinProjects on tbins.id=tServiceBinProjects.bin_id where tServiceBinProjects.id is null or tServiceBinProjects.project_id = any($1)", pg.Array(projectIDs))
+	tempRes := make([]subset.AllServiceBinsNoSort, 0, 20)
+	res := make([]subset.AllServiceBinsByOwner, 0, 20)
+	if rows == nil {
+		return &res, nil
+	}
+	for rows.Next() {
+		t := subset.AllServiceBinsNoSort{}
+		if err = rows.Scan(&t.ID, &t.Name, &t.Type, &t.RunSTR, &t.Owner, &t.LastModified); err != nil {
+			return &res, err
+		}
+		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from tServiceBinProjects where bin_id=$1)", t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for rowsProjects.Next() {
+			var project string
+			err = rowsProjects.Scan(&project)
+			if err != nil {
+				return nil, err
+			}
+			t.Projects = append(t.Projects, project)
+		}
+		tempRes = append(tempRes, t)
+	}
+	len := len(tempRes)
+	allOwner := make([]string, 0, len)
+	for i := 0; i < len; i++ {
+		allOwner = append(allOwner, tempRes[i].Owner)
+	}
+	uniqueOwner := make([]string, 0, len)
+	for _, v := range allOwner {
+		skip := false
+		for _, u := range uniqueOwner {
+			if v == u {
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			uniqueOwner = append(uniqueOwner, v)
+		}
+	}
+	for _, v := range uniqueOwner {
+		t := subset.AllServiceBinsByOwner{}
+		t.Owner = v
+		for i := 0; i < len; i++ {
+			if v == tempRes[i].Owner {
+				t.Services = append(t.Services, subset.ServicesBin{ID: tempRes[i].ID, Name: tempRes[i].Name, Type: tempRes[i].Type, RunSTR: tempRes[i].RunSTR, LastModified: tempRes[i].LastModified, Projects: tempRes[i].Projects})
+			}
+		}
+		res = append(res, t)
+	}
+	return &res, err
+}
+
+//GetAllServiceBinsType - return all servicebins type
+func (c PGClient) GetAllServiceBinsType() (*[]subset.AllServiceBinType, error) {
+	var rows *sql.Rows
+	rows, err := db.Query("select id,type_name from tBinsType")
+	res := make([]subset.AllServiceBinType, 0, 10)
+	if rows == nil {
+		return &res, nil
+	}
+	for rows.Next() {
+		t := subset.AllServiceBinType{}
+		if err = rows.Scan(&t.ID, &t.Type); err != nil {
+			return &res, err
+		}
+		res = append(res, t)
+	}
+	return &res, err
+}
+
 //NewService - insert new scenario values to table  scenarios
-func (c PGClient) NewService(name string, host string, uri string, type_service string, runSTR string, projects []string) (err error) {
-	_, err = db.Query("select new_service_function", name, host, uri, type_service, runSTR, pg.Array(projects))
+func (c PGClient) NewService(name string, host string, uri string, typeService string, runSTR string, projects []string, owner string) (err error) {
+	_, err = db.Query("select new_service_function", name, host, uri, typeService, runSTR, pg.Array(projects), owner)
 	if err != nil {
 		return err
 	}
@@ -502,6 +636,23 @@ func (c PGClient) GetProjectsIDtoString(projects []string) (ids []string, err er
 	return ids, nil
 }
 
+//GetProjectsIDtoInt - func to return all users role and  project for front project and role models
+func (c PGClient) GetProjectsIDtoInt(projects []string) (ids []int, err error) {
+	rows, err := db.Query("select id from tprojects where name = any($1)", pg.Array(projects))
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id int
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
 //GetAllHosts - func return all hosts
 func (c PGClient) GetAllHosts() ([]subset.AllHost, error) {
 	var rows *sql.Rows
@@ -573,7 +724,7 @@ func (c PGClient) GetAllHostsWithProject(project string) ([]subset.AllHost, erro
 
 //NewHost - insert new host from database
 func (c PGClient) NewHost(ip string, user string, hostType string, projects []string) (err error) {
-	_, err = db.Query("select * from new_host_function(($1,$2,$3,$4)", ip, hostType, user, pg.Array(projects))
+	_, err = db.Query("select * from new_host_function($1,$2,$3,$4)", ip, hostType, user, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -627,7 +778,7 @@ func (c PGClient) GetAllProjects() ([]subset.AllProjects, error) {
 
 //NewProject - insert new projects from database
 func (c PGClient) NewProject(project string) (err error) {
-	_, err = db.Exec("insert into tProjects (name,status)values($1,active)", project)
+	_, err = db.Exec("insert into tProjects (name,status)values($1,'active')", project)
 	if err != nil {
 		return err
 	}
@@ -636,7 +787,7 @@ func (c PGClient) NewProject(project string) (err error) {
 
 //UpdateProject - insert new projects from database
 func (c PGClient) UpdateProject(id int64, project string, status string) (err error) {
-	_, err = db.Exec("update tProjects SET name=$2,status=$3", id, project, status)
+	_, err = db.Exec("update tProjects SET name=$2,status=$3 where id=$1", id, project, status)
 	if err != nil {
 		return err
 	}
