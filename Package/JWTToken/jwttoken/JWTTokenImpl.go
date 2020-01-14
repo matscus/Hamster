@@ -2,6 +2,7 @@ package jwttoken
 
 import (
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -99,4 +100,24 @@ func GetUser(t string) string {
 		return role.(string)
 	}
 	return ""
+}
+
+//GetUserProjects - func to parse token and check to valid
+func GetUserProjects(t string) []string {
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("KEY")), nil
+	})
+	if err == nil && token.Valid {
+		claims := token.Claims.(jwt.MapClaims)
+		role := claims["project"]
+		value := reflect.ValueOf(role)
+		len := value.Len()
+		res := make([]string, 0, len)
+		for i := 0; i < value.Len(); i++ {
+			temp := value.Index(i).Interface()
+			res = append(res, temp.(string))
+		}
+		return res
+	}
+	return nil
 }
