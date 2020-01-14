@@ -41,9 +41,9 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 	prometheusstate := true
 	temp := make(map[string]Host)
 	l := len(*getResponceAllData)
-	checkhdd := CHDD{}
-	checkcpu := CCPU{}
-	checkmem := CMemory{}
+	checkhdd := CheckHDD{}
+	checkcpu := CheckCPU{}
+	checkmem := CheckMemory{}
 	client, err := client.NewHTTPSClient()
 	for i := 0; i < l; i++ {
 		id := (*getResponceAllData)[i].ID
@@ -135,7 +135,6 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 		for _, v := range temp {
 			res.Host = append(res.Host, v)
 		}
-
 	} else {
 		host := Host{}
 		res.Host = append(res.Host, host)

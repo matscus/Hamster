@@ -23,3 +23,50 @@ type Monitoring struct {
 	Host   string `json:"host,omitempty"`
 	Status bool   `json:"status,omitempty"`
 }
+
+//CheckCPU - data structure obtained from prometheus on CPU usage on hosts
+type CheckCPU struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric struct {
+				Instance string `json:"instance"`
+			} `json:"metric"`
+			Value []interface{} `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
+//CheckHDD - The structure of the building is data obtained from the use of hard disks, on all monitored hosts, in terms of mount points.
+type CheckHDD struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric struct {
+				Device     string `json:"device"`
+				Fstype     string `json:"fstype"`
+				Instance   string `json:"instance"`
+				Job        string `json:"job"`
+				Mountpoint string `json:"mountpoint"`
+			} `json:"metric"`
+			Value []interface{} `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
+//CheckMemory - data structure obtained from prometheus on memory usage on hosts
+type CheckMemory struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric struct {
+				Instance string `json:"instance"`
+				Job      string `json:"job"`
+			} `json:"metric"`
+			Value []interface{} `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
