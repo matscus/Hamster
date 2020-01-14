@@ -54,7 +54,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		_, errWrite := w.Write([]byte("{\"Message\":\"User created \"}"))
+		_, errWrite := w.Write([]byte("{\"Message\":\"Project created \"}"))
 		if errWrite != nil {
 			log.Printf("[ERROR]User created, but  Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
