@@ -10,6 +10,39 @@ type AllService struct {
 	Projects []string `json:"projects"`
 }
 
+//AllServiceBinsNoSort - struct for return all servicebins, no sotr
+type AllServiceBinsNoSort struct {
+	ID           int64    `json:"id"`
+	Name         string   `json:"name"`
+	Type         string   `json:"type"`
+	RunSTR       string   `json:"runstr"`
+	Owner        string   `json:"owner"`
+	LastModified string   `json:"lastmodified"`
+	Projects     []string `json:"projects"`
+}
+
+//AllServiceBinsByOwner - struct for return all servicebins, sort by owner
+type AllServiceBinsByOwner struct {
+	Owner    string        `json:"owner"`
+	Services []ServicesBin `json:"services"`
+}
+
+//ServicesBin - substruct for AllServiceBinsByOwner
+type ServicesBin struct {
+	ID           int64    `json:"id"`
+	Name         string   `json:"name"`
+	Type         string   `json:"type"`
+	RunSTR       string   `json:"runstr"`
+	LastModified string   `json:"lastmodified"`
+	Projects     []string `json:"projects"`
+}
+
+//AllServiceBinType - struct for return all type  servicebins
+type AllServiceBinType struct {
+	ID   int64  `json:"id"`
+	Type string `json:"type"`
+}
+
 //AllScenario - struct for return all scenario
 type AllScenario struct {
 	ID           int64  `json:"id"`
