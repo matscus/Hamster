@@ -3,3 +3,12 @@
 /ssl/id_rsa
 /ssl/server.key
 /ssl/server.pem
+ApplicationPrograms/RemoteRuns/starttest
+ApplicationPrograms/RemoteRuns/starttest2
+Mock/YandexCloudAPI/server.key
+Package/main
+Package/test.yml
+Package/JMXParser/test.xml
+Mock/YandexCloudAPI/server.pem
+Package/JMXParser/test.xml
+Package/JMXParser/test.xml
