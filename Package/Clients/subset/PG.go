@@ -8,7 +8,14 @@ type PGClient interface {
 	SetStartTest(testName string, testType string) error
 	SetStopTest(runID string) error
 	//services
-	NewService(name string, host string, uri string, typeService string, runSTR string, projects []string) (err error)
+	NewServiceBin(name string, typeService string, runSTR string, own string, projects []string) (err error)
+	UpdateServiceBin(id int64, name string, typeService string, runSTR string, own string) (err error)
+	DeleteServiceBin(id int64) (err error)
+	GetAllServiceBinsNoSort(projectIDs []string) (*[]AllServiceBinsNoSort, error)
+	GetAllServiceBinsByOwner(projectIDs []string) (*[]AllServiceBinsByOwner, error)
+	GetAllServiceBinsType() (*[]AllServiceBinType, error)
+
+	NewService(name string, host string, uri string, typeService string, runSTR string, projects []string, owner string) (err error)
 	GetAllServices() (*[]AllService, error)
 	GetLastServiceID() (ID int64, err error)
 	GetProjectServices(project string) (*[]AllService, error)
@@ -39,6 +46,7 @@ type PGClient interface {
 	GetUserIDAndRole(user string) (id int64, role string, err error)
 	GetUserProjects(userID int64) (projects []string, err error)
 	GetProjectsIDtoString(projects []string) (ids []string, err error)
+	GetProjectsIDtoInt(projects []string) (ids []int, err error)
 
 	GetUsersAndHosts() (map[string]string, error)
 	GetUserHash(user string) (hash string, err error)
