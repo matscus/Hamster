@@ -55,10 +55,10 @@ func main() {
 	r.HandleFunc("/api/v1/admins/projects", middleware.AdminsMiddleware(handlers.Projects)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/api/v1/admins/roles", middleware.AdminsMiddleware(handlers.Roles)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/api/v1/admins/getallroles", middleware.AdminsMiddleware(handlers.GetAllRoles)).Methods(http.MethodGet, http.MethodOptions)
-	r.HandleFunc("/api/v1/admins/servicebins", middleware.AdminsMiddleware(handlers.ServiceBins)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+	r.HandleFunc("/api/v1/admins/servicebins", middleware.AdminsMiddleware(handlers.ServiceBins)).Methods(http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions)
 	r.HandleFunc("/api/v1/admins/getallservicebins", middleware.AdminsMiddleware(handlers.GetAllServiceBins)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/api/v1/admins/getallservicebinstype", middleware.AdminsMiddleware(handlers.GetAllServiceBinsType)).Methods(http.MethodGet, http.MethodOptions)
-	r.PathPrefix("/api/v1/admins/bins/").Handler(http.StripPrefix("/api/v1/scenario/files/", middleware.MiddlewareFiles(http.FileServer(http.Dir("home/matscus/Hamster/bins/"))))).Methods(http.MethodGet, http.MethodOptions).Queries("servicetype", "{servicetype}", "servicename", "{servicename}")
+	r.PathPrefix("/api/v1/admins/bins/").Handler(http.StripPrefix("/api/v1/admins/files/", middleware.MiddlewareFiles(http.FileServer(http.Dir("home/matscus/Hamster/bins/"))))).Methods(http.MethodGet, http.MethodOptions).Queries("servicetype", "{servicetype}", "servicename", "{servicename}")
 	http.Handle("/api/v1/admins/", r)
 	//r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
