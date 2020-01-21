@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/matscus/Hamster/MicroServices/auth/handlers"
+	"github.com/matscus/Hamster/Package/Middleware/middleware"
 
 	"context"
 
@@ -43,7 +44,7 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/api/v1/auth/new", handlers.Middleware(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/auth/new", middleware.MiddlewareAuth(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
 	http.Handle("/api/v1/auth/", r)
 	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {
