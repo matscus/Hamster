@@ -3,7 +3,7 @@ package hosts
 import (
 	"os/exec"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
+	"github.com/matscus/Hamster/Package/Clients/client/postgres"
 	"github.com/matscus/Hamster/Package/Hosts/subset"
 )
 
@@ -16,6 +16,7 @@ type Host struct {
 	Password string   `json:"password,omitempty"`
 	State    string   `json:"state"`
 	Projects []string `json:"projects"`
+	DBClient *postgres.PGClient
 }
 
 //New - func to return new host interface
@@ -32,12 +33,11 @@ func (h Host) Create() error {
 	if err != nil {
 		return err
 	}
-	pgclient := client.PGClient{}.New()
-	projectIDs, err := pgclient.GetProjectsIDtoString(h.Projects)
+	projectIDs, err := h.DBClient.GetProjectsIDtoString(h.Projects)
 	if err != nil {
 		return err
 	}
-	err = pgclient.NewHost(h.Host, h.Type, h.User, projectIDs)
+	err = h.DBClient.NewHost(h.Host, h.Type, h.User, projectIDs)
 	if err != nil {
 		return err
 	}
@@ -46,24 +46,23 @@ func (h Host) Create() error {
 
 //Update - func for udpate generator, from database
 func (h Host) Update() error {
-	client := client.PGClient{}.New()
-	err := client.UpdateHost(h.ID, h.Host, h.User, h.Type)
+	err := h.DBClient.UpdateHost(h.ID, h.Host, h.User, h.Type)
 	if err != nil {
 		return err
 	}
-	projectsID, err := client.GetProjectsIDtoString(h.Projects)
+	projectsID, err := h.DBClient.GetProjectsIDtoString(h.Projects)
 	if err != nil {
 		return err
 	}
-	return client.UpdatetHostProjects(h.ID, projectsID)
+	return h.DBClient.UpdatetHostProjects(h.ID, projectsID)
 }
 
 //Delete - func for udelete host
 func (h Host) Delete() error {
-	return client.PGClient{}.New().DeleteHost(h.ID)
+	return h.DBClient.DeleteHost(h.ID)
 }
 
 //IfExist -
 func (h Host) IfExist() (bool, error) {
-	return client.PGClient{}.New().HostIfExist(string(h.ID))
+	return h.DBClient.HostIfExist(string(h.ID))
 }

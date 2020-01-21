@@ -7,6 +7,6 @@ type SSHClient interface {
 	Ping(target string) (res bool, err error)
 	SCP(target, filePath, destinationPath string) error
 	CombinedOutput(target string, str string) ([]byte, error)
-	InstallServiceToRemoteHost(serviceType string, name string, target string) (err error)
+	InstallServiceToRemoteHost(serviceType string, name string, target string, archType string) (err error)
 	DeleteServiceFromRemoteHost(serviceType string, name string, target string) (err error)
 }

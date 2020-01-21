@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Services/service"
 )
@@ -17,8 +16,7 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	splitToken := strings.Split(authHeader, "Bearer ")
 	projects := jwttoken.GetUserProjects(strings.TrimSpace(splitToken[1]))
-	pgclient := client.PGClient{}.New()
-	projectsID, err := pgclient.GetProjectsIDtoString(projects)
+	projectsID, err := pgClient.GetProjectsIDtoString(projects)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins error: " + err.Error() + "\"}"))
@@ -27,7 +25,7 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	bins, err := pgclient.GetAllServiceBinsByOwner(projectsID)
+	bins, err := pgClient.GetAllServiceBinsByOwner(projectsID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins error: " + err.Error() + "\"}"))
@@ -48,7 +46,7 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 
 //GetAllServiceBinsType -  handle function, for return ALL servicebins info
 func GetAllServiceBinsType(w http.ResponseWriter, r *http.Request) {
-	bins, err := client.PGClient{}.New().GetAllServiceBinsType()
+	bins, err := pgClient.GetAllServiceBinsType()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins types error: " + err.Error() + "\"}"))
@@ -70,15 +68,13 @@ func GetAllServiceBinsType(w http.ResponseWriter, r *http.Request) {
 //ServiceBins -  handle function, for new,update and delete host
 func ServiceBins(w http.ResponseWriter, r *http.Request) {
 	var s service.Service
-	id, err := strconv.Atoi(r.FormValue("serviceID"))
-	if err != nil {
-		s.ID = int64(id)
-	}
 	s.Type = r.FormValue("serviceType")
 	s.RunSTR = r.FormValue("runSTR")
 	authHeader := r.Header.Get("Authorization")
 	splitToken := strings.Split(authHeader, "Bearer ")
 	own := jwttoken.GetUser(strings.TrimSpace(splitToken[1]))
+	s.Projects = strings.Split(r.FormValue("projects"), ";")
+	s.DBClient = pgClient
 	switch r.Method {
 	case "POST":
 		file, header, err := r.FormFile("uploadFile")
@@ -102,13 +98,17 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Host created \"}"))
+		_, errWrite := w.Write([]byte("{\"Message\":\"Bins created \"}"))
 		if errWrite != nil {
-			log.Printf("[ERROR] Host created, but Not Writing to ResponseWriter due: %s", errWrite.Error())
+			log.Printf("[ERROR] Bins created, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	case "PUT":
-		if own == s.Own || own == "admin" {
-			err := s.UpdateBin(own)
+		if own == s.Owner || own == "god" {
+			id, err := strconv.Atoi(r.FormValue("serviceID"))
+			if err == nil {
+				s.ID = int64(id)
+			}
+			err = s.UpdateBin()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -123,16 +123,20 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 				log.Printf("[ERROR] Host updated, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 			}
 		} else {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusForbidden)
 			_, errWrite := w.Write([]byte("{\"Message\": You are not a owner for this service}"))
 			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+				log.Printf("[ERROR] Not Writing to ResponseWriter error  due: %s", errWrite.Error())
 			}
 			return
 		}
-
 	case "DELETE":
-		if own == s.Own || own == "admin" {
+		s.Name = r.FormValue("fileName")
+		id, err := strconv.Atoi(r.FormValue("serviceID"))
+		if err == nil {
+			s.ID = int64(id)
+		}
+		if own == s.Owner || own == "god" {
 			err := s.DeleteBin()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)

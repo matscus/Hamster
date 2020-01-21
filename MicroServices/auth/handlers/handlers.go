@@ -8,22 +8,6 @@ import (
 	"github.com/matscus/Hamster/Package/Users/users"
 )
 
-//Middleware - middleware handle function, for check auth and set default headers
-func Middleware(f http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Max-Age", "600")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			f(w, r)
-		}
-	}
-}
-
 //GetToken -  handle function, for get new token
 func GetToken(w http.ResponseWriter, r *http.Request) {
 	var user users.User
@@ -38,8 +22,8 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	u := user.New()
-	res, err := u.CheckUser()
+	user.DBClient = pgClient
+	res, err := user.CheckUser()
 	if !res {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -48,7 +32,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	ok, err := u.CheckPasswordExp()
+	ok, err := user.CheckPasswordExp()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -58,7 +42,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok {
-		token, err = u.NewTokenString(false)
+		token, err = user.NewTokenString(false)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -74,7 +58,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	token, err = u.NewTokenString(true)
+	token, err = user.NewTokenString(true)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))

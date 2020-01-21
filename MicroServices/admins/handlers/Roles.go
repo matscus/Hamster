@@ -5,13 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Roles/roles"
 )
 
 //GetAllRoles -  return all projects
 func GetAllRoles(w http.ResponseWriter, r *http.Request) {
-	allroles, err := client.PGClient{}.New().GetAllRoles()
+	allroles, err := pgClient.GetAllRoles()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -42,6 +41,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	role.DBClient = pgClient
 	switch r.Method {
 	case "POST":
 		err = role.Create()

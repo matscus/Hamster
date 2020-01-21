@@ -5,13 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Projects/projects"
 )
 
 //GetAllProjects -  return all projects
 func GetAllProjects(w http.ResponseWriter, r *http.Request) {
-	allproject, err := client.PGClient{}.New().GetAllProjects()
+	allproject, err := pgClient.GetAllProjects()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -42,6 +41,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	project.DBClient = pgClient
 	switch r.Method {
 	case "POST":
 		err = project.Create()

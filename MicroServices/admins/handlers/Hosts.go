@@ -6,13 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
 //GetAllHosts -  handle function, for get all hosts
 func GetAllHosts(w http.ResponseWriter, r *http.Request) {
-	allhosts, err := client.PGClient{}.New().GetAllHosts()
+	allhosts, err := pgClient.GetAllHosts()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -35,7 +34,7 @@ func GetAllHosts(w http.ResponseWriter, r *http.Request) {
 func GetAllHostsWithProject(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	project, _ := params["project"]
-	allhosts, err := client.PGClient{}.New().GetAllHostsWithProject(project)
+	allhosts, err := pgClient.GetAllHostsWithProject(project)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -66,6 +65,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	host.DBClient = pgClient
 	switch r.Method {
 	case "POST":
 		err = host.Create()

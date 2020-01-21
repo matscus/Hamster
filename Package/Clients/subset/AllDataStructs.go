@@ -5,7 +5,7 @@ type AllService struct {
 	ID       int64    `json:"id"`
 	Name     string   `json:"name"`
 	Host     string   `json:"host"`
-	URI      string   `json:"uri"`
+	Port     string   `json:"uri"`
 	Type     string   `json:"type"`
 	Projects []string `json:"projects"`
 }

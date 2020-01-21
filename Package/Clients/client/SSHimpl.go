@@ -1,11 +1,13 @@
 package client
 
 import (
-	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/matscus/Hamster/Package/Clients/subset"
 	"github.com/tmc/scp"
@@ -127,7 +129,7 @@ func (c SSHClient) CombinedOutput(target string, str string) ([]byte, error) {
 }
 
 //InstallServiceToRemoteHost -
-func (c SSHClient) InstallServiceToRemoteHost(serviceType string, name string, target string) (err error) {
+func (c SSHClient) InstallServiceToRemoteHost(serviceType string, name string, target string, archType string) (err error) {
 	client, err := ssh.Dial("tcp", target+":22", c.SHHConfig)
 	if err != nil {
 		return err
@@ -138,35 +140,38 @@ func (c SSHClient) InstallServiceToRemoteHost(serviceType string, name string, t
 		return err
 	}
 	defer session.Close()
-	path := "~/Hamster/bins/" + serviceType + "/" + name + "/"
-	test := regexp.MustCompile("([A-Za-z0-9]+)")
-	dirSlice := test.FindAllStringSubmatch(path, -1)
-	l := len(dirSlice)
-	//values IsNotExist in the byte slice
-	isNotExist := []byte{73, 115, 78, 111, 116, 69, 120, 105, 115, 116, 10}
-	tempPath := "~/"
-	for i := 0; i < l; i++ {
-		res, err := session.CombinedOutput("[ -d ~/" + dirSlice[i][0] + "/ ] && echo 'ok' || echo 'IsNotExist'")
-		if err != nil {
-			return err
-		}
-		ok := bytes.Equal(res, isNotExist)
-		if ok {
-			continue
-		} else {
-			err = session.Run("mkdir " + tempPath + dirSlice[i][0])
-			tempPath = tempPath + dirSlice[i][0] + "/"
-		}
+	stdin, err := session.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
 	}
-	err = scp.CopyPath(path+"compress.tar.gzip", path+"compress.tar.gzip", session)
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+	err = session.Shell()
 	if err != nil {
 		return err
 	}
-	err = session.Run("tar -xf " + path + "compress.tar.gzip")
+	pathBins := filepath.Join("/home", c.SHHConfig.User, "Hamster", "bins", serviceType)
+	filePath := filepath.Join(os.Getenv("HOME"), "Hamster", "distr", serviceType, name)
+	cmd := strings.Join([]string{"mkdir", pathBins}, " ")
+	fmt.Fprintf(stdin, "%s\n", cmd)
+	scp := exec.Command("scp", "-r", filePath, strings.Join([]string{c.SHHConfig.User, "@", target, ":", pathBins, name}, ""))
+	err = scp.Start()
 	if err != nil {
 		return err
 	}
-	return nil
+	var cmdUnArch string
+	switch archType {
+	case ".tar.gz":
+		cmdUnArch = strings.Join([]string{"tar", "-xf", name}, " ")
+	case ".zip":
+		cmdUnArch = strings.Join([]string{"unzip", name}, " ")
+	}
+	commands := []string{
+		"cd " + pathBins,
+		cmdUnArch,
+	}
+	_, err = fmt.Fprintf(stdin, "%s\n", strings.Join(commands, ";"))
+	return err
 }
 
 //DeleteServiceFromRemoteHost - func connect to remote host and delete service
@@ -181,9 +186,7 @@ func (c SSHClient) DeleteServiceFromRemoteHost(serviceType string, name string, 
 		return err
 	}
 	defer session.Close()
-	err = session.Run("rm -rf ~/Hamster/bins/" + serviceType + "/" + name + "/")
-	if err != nil {
-		return err
-	}
-	return nil
+	pathBins := filepath.Join("echo $HOME", "Hamster", "bins", serviceType, name)
+	err = session.Run(strings.Join([]string{"rm", "-rf", pathBins}, " "))
+	return err
 }

@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/matscus/Hamster/Package/Clients/client/postgres"
+
 	"github.com/dgrijalva/jwt-go"
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 
 	"github.com/matscus/Hamster/Package/Users/subset"
@@ -21,24 +22,24 @@ type User struct {
 	Password string   `json:password,omitempty`
 	Role     string   `json:"role"`
 	Projects []string `json:"projects"`
+	DBClient *postgres.PGClient
 	jwt.StandardClaims
 }
 
 //New - return inretface user
-func (u *User) New() subset.User {
+func New(client *postgres.PGClient) subset.User {
 	var user subset.User
-	user = u
+	user = User{DBClient: client}
 	return user
 }
 
 //NewTokenString - func for generate and response new token
 func (u User) NewTokenString(temp bool) (token string, err error) {
-	client := client.PGClient{}.New()
-	userID, role, err := client.GetUserIDAndRole(u.User)
+	userID, role, err := u.DBClient.GetUserIDAndRole(u.User)
 	if err != nil {
 		return "", err
 	} else {
-		projects, err := client.GetUserProjects(userID)
+		projects, err := u.DBClient.GetUserProjects(userID)
 		if err != nil {
 			return "", err
 		} else {
@@ -59,8 +60,8 @@ func (u User) NewTokenString(temp bool) (token string, err error) {
 }
 
 //CheckUser - func for check users (for )validation of user token)
-func (u *User) CheckUser() (res bool, err error) {
-	hash, err := client.PGClient{}.New().GetUserHash(u.User)
+func (u User) CheckUser() (res bool, err error) {
+	hash, err := u.DBClient.GetUserHash(u.User)
 	password, err := b64.StdEncoding.DecodeString(u.Password)
 	ok := compareHash(hash, password)
 	if ok {
@@ -71,8 +72,8 @@ func (u *User) CheckUser() (res bool, err error) {
 }
 
 //CheckPasswordExp - func for check PasswordExp (for )validation of user token)
-func (u *User) CheckPasswordExp() (res bool, err error) {
-	exp, err := client.PGClient{}.New().GetUserPasswordExp(u.User)
+func (u User) CheckPasswordExp() (res bool, err error) {
+	exp, err := u.DBClient.GetUserPasswordExp(u.User)
 	t, _ := time.Parse(time.RFC3339, exp)
 	if t.Unix() == 0 {
 		return true, nil
@@ -86,50 +87,47 @@ func (u *User) CheckPasswordExp() (res bool, err error) {
 }
 
 //Create - create new user and insert data to database
-func (u *User) Create() error {
+func (u User) Create() error {
 	h := sha256.New()
 	pass, err := b64.StdEncoding.DecodeString(u.Password)
 	if err != nil {
 		return err
 	}
 	h.Write([]byte(pass))
-	client := client.PGClient{}.New()
-	projectsID, err := client.GetProjectsIDtoString(u.Projects)
+	projectsID, err := u.DBClient.GetProjectsIDtoString(u.Projects)
 	if err != nil {
 		return err
 	}
-	return client.NewUser(u.User, fmt.Sprintf("%x", h.Sum(nil)), u.Role, projectsID)
+	return u.DBClient.NewUser(u.User, fmt.Sprintf("%x", h.Sum(nil)), u.Role, projectsID)
 }
 
 //Update - update user data
-func (u *User) Update() error {
-	client := client.PGClient{}.New()
-	err := client.UpdateUser(u.ID, u.Role)
+func (u User) Update() error {
+	err := u.DBClient.UpdateUser(string(u.ID), u.Role, u.Projects)
 	if err != nil {
 		return err
 	}
-	projectsID, err := client.GetProjectsIDtoString(u.Projects)
+	projectsID, err := u.DBClient.GetProjectsIDtoString(u.Projects)
 	if err != nil {
 		return err
 	}
-	return client.UpdatetUserProjects(u.ID, projectsID)
+	return u.DBClient.UpdatetUserProjects(u.ID, projectsID)
 }
 
 //Delete -delete user
-func (u *User) Delete() error {
-	return client.PGClient{}.New().DeleteUser(u.ID)
+func (u User) Delete() error {
+	return u.DBClient.DeleteUser(u.ID)
 }
 
 //ChangePassword - change user password
-func (u *User) ChangePassword() error {
-	client := client.PGClient{}.New()
+func (u User) ChangePassword() error {
 	h := sha256.New()
 	pass, err := b64.StdEncoding.DecodeString(u.Password)
 	if err != nil {
 		return err
 	}
 	h.Write([]byte(pass))
-	return client.ChangeUserPassword(u.ID, fmt.Sprintf("%x", h.Sum(nil)))
+	return u.DBClient.ChangeUserPassword(u.ID, fmt.Sprintf("%x", h.Sum(nil)))
 }
 func compareHash(hash string, password []byte) bool {
 	h := sha256.New()

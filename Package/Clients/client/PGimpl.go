@@ -21,7 +21,7 @@ func init() {
 }
 
 //PGClient - default PGClient struct
-type PGClient struct{}
+//type PGClient struct{}
 
 //New - return new interface PGClient
 func (c PGClient) New() subset.PGClient {
@@ -187,8 +187,16 @@ func (c PGClient) NewServiceBin(name string, typeService string, runSTR string, 
 }
 
 //UpdateServiceBin - func for update bins info
-func (c PGClient) UpdateServiceBin(id int64, name string, type_service string, runSTR string, own string) (err error) {
-	_, err = db.Exec("update tBins set name=$1,set type=$2,set runstr=$3,set last_modified = to_timestamp($4),set own=$5 where id=$6", name, type_service, runSTR, time.Now(), own, id)
+func (c PGClient) UpdateServiceBin(id int64, runSTR string, projects []string) (err error) {
+	_, err = db.Exec("update tBins set runstr=$1,  last_modified = now() where id=$2", runSTR, id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("delete from tServiceBinProjects where bin_id=$1", id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Query("select * from tServiceBinProjects_inc_function($1,$2)", id, pg.Array(projects))
 	if err != nil {
 		return err
 	}
@@ -197,7 +205,7 @@ func (c PGClient) UpdateServiceBin(id int64, name string, type_service string, r
 
 //DeleteServiceBin - delete row from table tBins
 func (c PGClient) DeleteServiceBin(id int64) (err error) {
-	_, err = db.Exec("delete tBins where id=$1", id)
+	_, err = db.Exec("delete from tBins where id=$1", id)
 	if err != nil {
 		return err
 	}
@@ -338,7 +346,7 @@ func (c PGClient) GetAllServices() (*[]subset.AllService, error) {
 	res := make([]subset.AllService, 0, 200)
 	for rows.Next() {
 		t := subset.AllService{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.Port, &t.Type); err != nil {
 			return &res, err
 		}
 		rowsProjects, err := db.Query("select name from tProjects where id in(select project_id from tServiceProjects where service_id=$1)", t.ID)
@@ -380,7 +388,6 @@ func (c PGClient) GetLastScenarioID() (id int64, err error) {
 }
 
 //GetAllGenerators - return all generators info.
-
 func (c PGClient) GetAllGenerators() ([]subset.AllHost, error) {
 	var rows *sql.Rows
 	rows, err := db.Query("select id, ip, host_type from tHosts where host_type='generator'")
@@ -467,12 +474,21 @@ func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, erro
 	res := make([]subset.AllService, 0, 200)
 	for rows.Next() {
 		t := subset.AllService{}
-		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.URI, &t.Type); err != nil {
+		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.Port, &t.Type); err != nil {
 			return &res, err
 		}
 		res = append(res, t)
 	}
 	return &res, err
+}
+
+//GetUserToHost - func return user to host
+func (c PGClient) GetUserToHost(ip string) (user string, err error) {
+	row := db.QueryRow("select users from tHosts where ip=$1", ip)
+	if err = row.Scan(&user); err != nil {
+		return "", err
+	}
+	return user, nil
 }
 
 //GetUsersAndHosts - func return ipp host and user for him

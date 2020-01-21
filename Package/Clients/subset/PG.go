@@ -9,7 +9,7 @@ type PGClient interface {
 	SetStopTest(runID string) error
 	//services
 	NewServiceBin(name string, typeService string, runSTR string, own string, projects []string) (err error)
-	UpdateServiceBin(id int64, name string, typeService string, runSTR string, own string) (err error)
+	UpdateServiceBin(id int64, runSTR string, projects []string) (err error)
 	DeleteServiceBin(id int64) (err error)
 	GetAllServiceBinsNoSort(projectIDs []string) (*[]AllServiceBinsNoSort, error)
 	GetAllServiceBinsByOwner(projectIDs []string) (*[]AllServiceBinsByOwner, error)
@@ -42,22 +42,23 @@ type PGClient interface {
 	UpdateHost(id int64, ip string, hostType string, user string) (err error)
 	DeleteHost(id int64) (err error)
 	UpdatetHostProjects(id int64, projects []string) error
+	GetUsersAndHosts() (map[string]string, error)
+	GetUserToHost(ip string) (user string, err error)
 	//users
 	GetUserIDAndRole(user string) (id int64, role string, err error)
 	GetUserProjects(userID int64) (projects []string, err error)
 	GetProjectsIDtoString(projects []string) (ids []string, err error)
 	GetProjectsIDtoInt(projects []string) (ids []int, err error)
 
-	GetUsersAndHosts() (map[string]string, error)
-	GetUserHash(user string) (hash string, err error)
-	GetUserPasswordExp(user string) (exp string, err error)
-	GetAllUsers() ([]AllUser, error)
-	NewUser(users string, password string, role string, projects []string) error
-	GetUserRoleAndProject(user string) (role string, projects []string, err error)
-	UpdateUser(id int64, role string) error
-	DeleteUser(user int64) (err error)
-	ChangeUserPassword(id int64, password string) (err error)
-	UpdatetUserProjects(user int64, projects []string) error
+	GetUserHash(user string) (hash string, err error)                              //
+	GetUserPasswordExp(user string) (exp string, err error)                        //
+	GetAllUsers() ([]AllUser, error)                                               //
+	NewUser(users string, password string, role string, projects []string) error   //
+	GetUserRoleAndProject(user string) (role string, projects []string, err error) //
+	UpdateUser(id int64, role string) error                                        //
+	DeleteUser(user int64) (err error)                                             //
+	ChangeUserPassword(id int64, password string) (err error)                      //
+	UpdatetUserProjects(user int64, projects []string) error                       //
 	//projects
 	GetAllProjects() ([]AllProjects, error)
 	NewProject(project string) (err error)

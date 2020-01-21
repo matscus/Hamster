@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/matscus/Hamster/MicroServices/service/handlers"
-	"github.com/matscus/Hamster/MicroServices/service/serv"
 	"github.com/matscus/Hamster/Package/Middleware/middleware"
 
 	"context"
@@ -34,8 +33,8 @@ type Token struct {
 }
 
 func init() {
-	go serv.InitGetResponseAllData()
-	serv.CheckService()
+	go handlers.InitGetResponseAllData()
+	handlers.CheckService()
 }
 
 func main() {
@@ -57,7 +56,7 @@ func main() {
 	}
 	r.HandleFunc("/api/v1/service/start", middleware.Middleware(handlers.StartSevice)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/api/v1/service/stop", middleware.Middleware(handlers.StopService)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/api/v1/service/administration", middleware.Middleware(handlers.Administration)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/v1/service/administration", middleware.Middleware(handlers.Administration)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/api/v1/service/getallservice", middleware.Middleware(handlers.GetAllServices)).Methods(http.MethodGet, http.MethodOptions).Queries("project", "{project}")
 	http.Handle("/api/v1/", r)
 	//r.Use(mux.CORSMethodMiddleware(r))

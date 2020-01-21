@@ -5,13 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Users/users"
 )
 
 //GetAllUsers -  handle function, for get new token
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	allusers, err := client.PGClient{}.New().GetAllUsers()
+	allusers, err := pgClient.GetAllUsers()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
@@ -42,6 +41,7 @@ func Users(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	user.DBClient = pgClient
 	switch r.Method {
 	case "POST":
 		err = user.Create()
@@ -111,6 +111,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	user.DBClient = pgClient
 	err = user.ChangePassword()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
