@@ -29,8 +29,8 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 			}
 			log.Println("body ", string(body))
 		}
-		requestId := r.Header.Get("GPB-requestId")
-		w.Header().Set("GPB-requestId", requestId)
+		requestID := r.Header.Get("GPB-requestId")
+		w.Header().Set("GPB-requestId", requestID)
 		w.Header().Set("Accept", "application/json")
 		w.Header().Set("Content-Type", "application/json")
 		if Mean != 0.0 {
