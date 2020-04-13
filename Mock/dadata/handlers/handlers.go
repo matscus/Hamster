@@ -11,6 +11,12 @@ import (
 	"github.com/matscus/Hamster/Mock/dadata/cache"
 )
 
+var (
+	Mean       float64
+	Deviation  float64
+	Requestlog bool
+)
+
 func GetFIO(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Accel-Expires", "0")
