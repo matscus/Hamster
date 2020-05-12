@@ -127,7 +127,6 @@ type SystemInfoInvest struct {
 }
 
 func ClientSearchInvest(rq ClientSearchRQ, w http.ResponseWriter) {
-	log.Println("invest")
 	client := datapool.GUIDPool[rq.Data.Filter.GUID]
 	rs := ClientSearchInvestRS{}
 	rs.Base = BaseInvest{
@@ -225,22 +224,22 @@ func ClientSearchInvest(rq ClientSearchRQ, w http.ResponseWriter) {
 	})
 	rs.Phones = append(rs.Phones, PhoneInvest{
 		Hid:           "87575",
-		Type:          "PC",
+		Type:          "MOBILE",
 		Primary:       true,
 		ActualDate:    "2020-04-16",
 		CountryCode:   "1",
 		CityCode:      "222",
 		Number:        "3334455",
-		FullNumber:    "12223334455",
+		FullNumber:    client.Phone,
 		Timezone:      "UTC+3",
 		NumberProfile: "MOBILE",
-		RawSource:     "+12223334455",
+		RawSource:     "+" + client.Phone,
 		State:         State{Code: "ACTUAL", TerminalFlag: false},
 		IsForeign:     false,
 	})
 	rs.Phones = append(rs.Phones, PhoneInvest{
 		Hid:           "39465318",
-		Type:          "MOBILE",
+		Type:          "PC",
 		Primary:       true,
 		ActualDate:    "2020-04-16",
 		CountryCode:   "1",
