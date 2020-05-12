@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	FilePath string
-	GUIDPool = make(map[string]Datapool)
+	FilePath  string
+	GUIDPool  = make(map[string]Datapool)
+	PhonePool = make(map[string]Datapool)
 )
 
 type Datapool struct {
@@ -39,6 +40,7 @@ func IntitDataPool() error {
 			return err
 		}
 		GUIDPool[r[0]] = Datapool{GUID: r[0], UserID: r[1], DealID: r[2], AccNum: r[3], Phone: r[4], ContractNum: r[5]}
+		PhonePool[r[4]] = Datapool{GUID: r[0], UserID: r[1], DealID: r[2], AccNum: r[3], Phone: r[4], ContractNum: r[5]}
 	}
 	log.Println("init done")
 	return nil

@@ -4,14 +4,16 @@ import (
 	"context"
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/Mock/info_service/datapool"
 	"github.com/matscus/Hamster/Mock/info_service/handlers"
+
+	"github.com/gorilla/mux"
 )
 
 var (
@@ -19,6 +21,7 @@ var (
 	keyPath      string
 	proto        string
 	listenport   string
+	host         string
 	wait         time.Duration
 	writeTimeout time.Duration
 	readTimeout  time.Duration
@@ -32,7 +35,7 @@ func init() {
 func main() {
 	flag.StringVar(&pemPath, "pempath", os.Getenv("SERVERREM"), "path to pem file")
 	flag.StringVar(&keyPath, "keypath", os.Getenv("SERVERKEY"), "path to key file")
-	flag.StringVar(&listenport, "port", "10000", "port to Listen")
+	flag.StringVar(&listenport, "port", "9092", "port to Listen")
 	flag.StringVar(&datapool.FilePath, "filepath", "datapool.csv", "path from csv data file")
 	flag.StringVar(&proto, "proto", "http", "http or https")
 	flag.BoolVar(&handlers.Requestlog, "request-log", false, "idle server timeout")
@@ -43,14 +46,30 @@ func main() {
 	flag.Float64Var(&handlers.Mean, "mean-timeout", 0.0, "mean responce timeout")
 	flag.Float64Var(&handlers.Deviation, "deviation-timeout", 0, "deviation responce timeout")
 	flag.Parse()
+
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				os.Stdout.WriteString(ipnet.IP.String() + "\n")
+				host = ipnet.IP.String()
+			}
+		}
+	}
+
 	r := mux.NewRouter()
 	srv := &http.Server{
-		Addr:         "0.0.0.0:" + listenport,
+		Addr:         host + ":" + listenport,
 		WriteTimeout: writeTimeout,
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/omni-information/api/v1/client/search", handlers.Middleware(handlers.ClientSearch)).Methods(http.MethodPost)
+	r.HandleFunc("/omni-information/api/v2/client/search", handlers.Middleware(handlers.ClientSearchCommon)).Methods(http.MethodPost)
 	r.HandleFunc("/omni-information/api/v2/client/product/deposit/list", handlers.Middleware(handlers.DepositList)).Methods(http.MethodPost)
 	r.HandleFunc("/omni-information/api/v2/client/product/account/list", handlers.Middleware(handlers.AccountList)).Methods(http.MethodPost)
 	http.Handle("/", r)

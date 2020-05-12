@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/matscus/Hamster/Mock/info_service/datapool"
 )
@@ -17,7 +18,11 @@ type DepositListRQ struct {
 	} `json:"data"`
 }
 type DepositListRS struct {
-	Contracts []Contract `json:"contracts"`
+	Status          string `json:"status"`
+	ActualTimestamp int64  `json:"actualTimestamp"`
+	Data            struct {
+		Contracts []Contract `json:"contracts"`
+	} `json:"data"`
 }
 type Contract struct {
 	Base struct {
@@ -108,6 +113,7 @@ type Deposit struct {
 
 func DepositList(w http.ResponseWriter, r *http.Request) {
 	rq := DepositListRQ{}
+	// log.Println("DepositListRQ = " + rq.Data.GUID)
 	err := json.NewDecoder(r.Body).Decode(&rq)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -121,7 +127,7 @@ func DepositList(w http.ResponseWriter, r *http.Request) {
 	rs := DepositListRS{}
 
 	contract := Contract{}
-	contract.Base.ClientRequest.SystemID = "DR36"
+	contract.Base.ClientRequest.SystemID = "DRTL"
 	contract.Base.ClientRequest.RawID = client.UserID
 	contract.Base.SystemInfo.SystemID = "DRTL"
 	contract.Base.SystemInfo.RawID = client.DealID
@@ -129,10 +135,10 @@ func DepositList(w http.ResponseWriter, r *http.Request) {
 	contract.Base.Owner.RawID = client.UserID
 	contract.Base.Owner.FullName = "ААААА КРИСТИНА ВИКТОРОВНА"
 	contract.Base.Number = client.ContractNum
-	contract.Base.Product.Code = "ДЕПОЗ_Пркв"
-	contract.Base.Product.Name = "Газпромбанк - Перспектива"
+	contract.Base.Product.Code = "ДЕПОЗ_ВУП"
+	contract.Base.Product.Name = "Ваш успех"
 	contract.Base.Product.Type = "2.0"
-	contract.Base.CreationDate = "2020-03-13"
+	contract.Base.CreationDate = "2020-01-13"
 	contract.Base.StartDate = "2020-03-13"
 	contract.Base.CloseDatePlan = "2020-09-10"
 	contract.Base.CloseDateFact = "1900-01-01"
@@ -176,7 +182,10 @@ func DepositList(w http.ResponseWriter, r *http.Request) {
 	deposit.Base.IsMultiCurrency = false
 
 	contract.Deposits = append(contract.Deposits, deposit)
-	rs.Contracts = append(rs.Contracts, contract)
+
+	rs.Status = "success"
+	rs.ActualTimestamp = time.Now().Unix()
+	rs.Data.Contracts = append(rs.Data.Contracts, contract)
 
 	err = json.NewEncoder(w).Encode(rs)
 	if err != nil {
