@@ -287,8 +287,11 @@ func ClientSearchInvest(rq ClientSearchRQ, w http.ResponseWriter) {
 		Hid:        "74875458",
 		SystemInfo: SystemInfoInvest{SystemID: "system two", RawID: "10013786933"},
 	})
-
-	err := json.NewEncoder(w).Encode(rs)
+	jsonStr, _ := json.Marshal(rs)
+	response := "ClientSearchResponseData{clients=" + string(jsonStr) + "}"
+	log.Println(response)
+	_, err := w.Write([]byte(response))
+	//err := json.NewEncoder(w).Encode(rs)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))

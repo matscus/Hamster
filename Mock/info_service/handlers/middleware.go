@@ -29,8 +29,18 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 			}
 			log.Println("body ", string(body))
 		}
-		requestID := r.Header.Get("GPB-requestId")
-		w.Header().Set("GPB-requestId", requestID)
+		requestId := r.Header.Get("GPB-requestId")
+		gpbGuid := r.Header.Get("GPB-Guid")
+		xb3SpanId := r.Header.Get("X-B3-Spanid")
+		xb3TraceId := r.Header.Get("X-B3-Traceid")
+		xb3ParentSpanId := r.Header.Get("X-B3-Parentspanid")
+		xb3Sampled := r.Header.Get("X-B3-Sampled")
+		w.Header().Set("GPB-requestId", requestId)
+		w.Header().Set("GPB-Guid", gpbGuid)
+		w.Header().Set("X-B3-Spanid", xb3SpanId)
+		w.Header().Set("X-B3-Traceid", xb3TraceId)
+		w.Header().Set("X-B3-Parentspanid", xb3ParentSpanId)
+		w.Header().Set("X-B3-Sampled", xb3Sampled)
 		w.Header().Set("Accept", "application/json")
 		w.Header().Set("Content-Type", "application/json")
 		if Mean != 0.0 {
