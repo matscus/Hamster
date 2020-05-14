@@ -288,7 +288,7 @@ func ClientSearchInvest(rq ClientSearchRQ, w http.ResponseWriter) {
 		SystemInfo: SystemInfoInvest{SystemID: "system two", RawID: "10013786933"},
 	})
 	jsonStr, _ := json.Marshal(rs)
-	response := "ClientSearchResponseData{clients=" + string(jsonStr) + "}"
+	response := "\"ClientSearchResponseData{clients=\"" + string(jsonStr) + "}"
 	log.Println(response)
 	_, err := w.Write([]byte(response))
 	//err := json.NewEncoder(w).Encode(rs)
