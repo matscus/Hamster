@@ -78,7 +78,6 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		file, header, err := r.FormFile("uploadFile")
-		defer file.Close()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, errWrite := w.Write([]byte("{\"Message\":\"Upload file error: " + err.Error() + "\"}"))
@@ -87,6 +86,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
+		defer file.Close()
 		s.Name = header.Filename
 		err = s.CreateBin(file, own)
 		if err != nil {
