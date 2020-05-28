@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ var (
 	keyPath      string
 	proto        string
 	listenport   string
+	host         string
 	wait         time.Duration
 	writeTimeout time.Duration
 	readTimeout  time.Duration
@@ -38,15 +40,30 @@ func main() {
 	flag.DurationVar(&idleTimeout, "idle-timeout", time.Second*60, "idle server timeout")
 	flag.Parse()
 	r := mux.NewRouter()
+
+	r.HandleFunc("/api/v1/auth/new", middleware.MiddlewareAuth(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
+	http.Handle("/api/v1/auth/", r)
 	srv := &http.Server{
-		Addr:         "0.0.0.0:" + listenport,
+		Addr:         host + ":" + listenport,
 		WriteTimeout: writeTimeout,
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/api/v1/auth/new", middleware.MiddlewareAuth(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
-	http.Handle("/api/v1/auth/", r)
-	r.Use(mux.CORSMethodMiddleware(r))
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Println("Get interface adres error: ", err.Error())
+		os.Exit(1)
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				os.Stdout.WriteString(ipnet.IP.String() + "\n")
+				host = ipnet.IP.String()
+			}
+		}
+	}
+
 	go func() {
 		switch proto {
 		case "https":
@@ -62,6 +79,7 @@ func main() {
 		}
 
 	}()
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
