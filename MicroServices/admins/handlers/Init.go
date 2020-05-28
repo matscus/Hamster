@@ -12,7 +12,11 @@ var (
 )
 
 func init() {
-	pgConf := postgres.Config{Driver: "postgres", User: os.Getenv("POSTGRESUSER"), Password: os.Getenv("POSTGRESPASSWORD"), DataBase: os.Getenv("POSTGRESDB"), SSLMode: "disable"}
+	pgConf := postgres.Config{Driver: "postgres",
+		User:     os.Getenv("POSTGRESUSER"),
+		Password: os.Getenv("POSTGRESPASSWORD"),
+		DataBase: os.Getenv("POSTGRESDB"),
+		SSLMode:  "disable"}
 	client := client.New("postgres", pgConf).(postgres.PGClient)
 	pgClient = &client
 }
