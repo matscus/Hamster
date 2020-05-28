@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +21,7 @@ var (
 	keyPath      string
 	proto        string
 	listenport   string
+	host         string
 	wait         time.Duration
 	writeTimeout time.Duration
 	readTimeout  time.Duration
@@ -37,13 +39,6 @@ func main() {
 	flag.DurationVar(&idleTimeout, "idle-timeout", time.Second*60, "idle server timeout")
 	flag.Parse()
 	r := mux.NewRouter()
-	srv := &http.Server{
-		Addr:         "0.0.0.0:" + listenport,
-		WriteTimeout: writeTimeout,
-		ReadTimeout:  readTimeout,
-		IdleTimeout:  idleTimeout,
-		Handler:      r,
-	}
 
 	r.HandleFunc("/api/v1/admins/getallusers", middleware.AdminsMiddleware(handlers.GetAllUsers)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/api/v1/admins/users", middleware.AdminsMiddleware(handlers.Users)).Methods(http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
@@ -60,7 +55,29 @@ func main() {
 	r.HandleFunc("/api/v1/admins/getallservicebinstype", middleware.AdminsMiddleware(handlers.GetAllServiceBinsType)).Methods(http.MethodGet, http.MethodOptions)
 	r.PathPrefix("/api/v1/admins/bins/").Handler(http.StripPrefix("/api/v1/admins/files/", middleware.MiddlewareFiles(http.FileServer(http.Dir("home/matscus/Hamster/bins/"))))).Methods(http.MethodGet, http.MethodOptions).Queries("servicetype", "{servicetype}", "servicename", "{servicename}")
 	http.Handle("/api/v1/admins/", r)
-	//r.Use(mux.CORSMethodMiddleware(r))
+
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Println("Get interface adres error: ", err.Error())
+		os.Exit(1)
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				os.Stdout.WriteString(ipnet.IP.String() + "\n")
+				host = ipnet.IP.String()
+			}
+		}
+	}
+	srv := &http.Server{
+		Addr:         host + ":" + listenport,
+		WriteTimeout: writeTimeout,
+		ReadTimeout:  readTimeout,
+		IdleTimeout:  idleTimeout,
+		Handler:      r,
+	}
+
 	go func() {
 		switch proto {
 		case "https":
