@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/matscus/Hamster/MicroServices/scenario/handlers"
+	"github.com/matscus/Hamster/Package/Clients/client"
+	"github.com/matscus/Hamster/Package/Clients/client/postgres"
 	"github.com/matscus/Hamster/Package/Middleware/middleware"
 
 	"context"
@@ -35,6 +37,10 @@ func init() {
 			time.Sleep(1 * time.Minute)
 		}
 	}()
+	pgConf := postgres.Config{Driver: "postgres", User: os.Getenv("POSTGRESUSER"), Password: os.Getenv("POSTGRESPASSWORD"), DataBase: os.Getenv("POSTGRESDB"), SSLMode: "disable"}
+	client := client.New("postgres", pgConf).(postgres.PGClient)
+	handlers.PgClient = &client
+	scn.PgClient = &client
 }
 
 func main() {

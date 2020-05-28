@@ -20,6 +20,9 @@ type ClientSearchRQ struct {
 			Phone struct {
 				FullNumber string `json: "fullNumber"`
 			} `json:"phone"`
+			Document struct {
+				Past bool `json: "past"`
+			} `json: "document"`
 		} `json:"filter"`
 	} `json:"data"`
 }
@@ -55,7 +58,6 @@ type Client struct {
 		IsPatronymicLack bool          `json:"isPatronymicLack"`
 		Name             string        `json:"name"`
 		Patronymic       string        `json:"patronymic"`
-		Residents        []Resident    `json:"residents"`
 		Surname          string        `json:"surname"`
 	} `json:"base"`
 	Detail struct {
@@ -67,7 +69,7 @@ type Client struct {
 	Documents []Document `json:"documents"`
 	Fatca     struct{}   `json:"fatca"`
 	StopLists []StopList `json:"stopList"`
-	Mails     []string   `json:"mails"`
+	Mails     []Mail     `json:"mails"`
 	Phones    []Phone    `json:"phones"`
 	Sources   []Source   `json:"sources"`
 }
@@ -179,6 +181,15 @@ type Phone struct {
 	Timezone string `json:"timezone"`
 	Type     string `json:"type"`
 }
+type Mail struct {
+	Hid        string   `json:"hid"`
+	Guid       string   `json:"guid"`
+	Type       string   `json:"type"`
+	Primary    bool     `json:"primary"`
+	ActualDate string   `json:"actualDate"`
+	Value      string   `json:"value"`
+	State      struct{} `json:"state"`
+}
 
 type Source struct {
 	Hid        string `json:"hid"`
@@ -201,11 +212,7 @@ func ClientSearchCommon(w http.ResponseWriter, r *http.Request) {
 	}
 	client := datapool.GUIDPool[rq.Data.Filter.GUID]
 	if client.GUID != "" {
-		if len(rq.Data.RequestFields) == 8 {
-			ClientSearchInvest(rq, w)
-		} else {
-			ClientSearchV1(rq, w)
-		}
+		ClientSearchV1(rq, w)
 	}
 	if client.GUID == "" {
 		ClientSearchV2(rq, w)
@@ -250,7 +257,6 @@ func ClientSearchV1(rq ClientSearchRQ, w http.ResponseWriter) {
 	resident := Resident{}
 	resident.Type = "base"
 	resident.State.TerminalFlag = false
-	cli.Base.Residents = append(cli.Base.Residents, resident)
 	citizenship := Citizenship{}
 	citizenship.CountryName = "Российская федерация"
 	cli.Base.Citizenships = append(cli.Base.Citizenships, citizenship)
@@ -258,7 +264,7 @@ func ClientSearchV1(rq ClientSearchRQ, w http.ResponseWriter) {
 	cli.Base.Birthdate = "1990-07-10"
 	addresse := Addresse{}
 	addresse.Hid = "82728384"
-	addresse.Type = "HOME"
+	addresse.Type = "CONSTANT_REGISTRATION"
 	addresse.Primary = true
 	addresse.ActualDate = "2020-01-24"
 	addresse.PostalCode = "117461"
@@ -291,8 +297,8 @@ func ClientSearchV1(rq ClientSearchRQ, w http.ResponseWriter) {
 	document.IssueAuthority = "ОТДЕЛОМ УФМС РОССИИ ПО ГОР. МОСКВЕ ПО РАЙОНУ ЗЮЗИНО"
 	document.DepartmentCode = "770-116"
 	document.State.Code = "ACTUAL"
-	document.Type = "SNILS"
-	document.FullValue = "001-ААА-ААА 17"
+	//	document.Type = "SNILS"
+	// document.FullValue = "001-ААА-ААА 17"
 	cli.Documents = append(cli.Documents, document)
 
 	phone := Phone{}
@@ -310,6 +316,14 @@ func ClientSearchV1(rq ClientSearchRQ, w http.ResponseWriter) {
 	phone.State.Code = "ACTUAL"
 	phone.IsForeign = false
 	cli.Phones = append(cli.Phones, phone)
+
+	mail := Mail{}
+	mail.ActualDate = "2020-01-30"
+	mail.Hid = "3109903"
+	mail.Primary = true
+	mail.Type = "PC"
+	mail.Value = "test@testmail.ru"
+	cli.Mails = append(cli.Mails, mail)
 
 	stopList := StopList{}
 	stopList.TotalMatches = "0"

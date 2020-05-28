@@ -4,7 +4,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
@@ -31,6 +30,6 @@ func (s *StopRequest) Stop() error {
 			go StopScenario(s.RunID, s.Generators[i].Host, str)
 		}
 	}
-	err = client.PGClient{}.New().SetStopTest(strconv.FormatInt(s.RunID, 10))
+	err = PgClient.SetStopTest(strconv.FormatInt(s.RunID, 10))
 	return err
 }

@@ -22,6 +22,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	s.Type = r.FormValue("scenarioType")
 	s.Gun = r.FormValue("gun")
 	s.Projects = r.FormValue("project")
+	s.DBClient = PgClient
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

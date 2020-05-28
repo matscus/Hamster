@@ -17,6 +17,7 @@ var (
 )
 
 func init() {
+
 	db, _ = sql.Open("postgres", "user="+os.Getenv("POSTGRESUSER")+" password="+os.Getenv("POSTGRESPASSWORD")+" dbname="+os.Getenv("POSTGRESDB")+" sslmode=disable")
 }
 
@@ -63,6 +64,7 @@ func (c PGClient) GetUserHash(user string) (hash string, err error) {
 	if err != nil {
 		return "", err
 	}
+	q.Close()
 	for q.Next() {
 		err = q.Scan(&hash)
 		if err != nil {

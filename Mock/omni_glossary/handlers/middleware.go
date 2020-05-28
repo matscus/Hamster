@@ -31,9 +31,13 @@ func Middleware(f http.HandlerFunc) http.HandlerFunc {
 		}
 		requestID := r.Header.Get("GPB-requestId")
 		gpbGUID := r.Header.Get("GPB-guid")
+		userAgent := r.Header.Get("User-Agent")
 		w.Header().Set("GPB-requestId", requestID)
+		w.Header().Set("User-Agent", userAgent)
 		w.Header().Set("GPB-guid", gpbGUID)
 		w.Header().Set("Accept", "application/json")
+		w.Header().Set("Accept-Encoding", "gzip")
+		w.Header().Set("Accept-Charset", "utf-8")
 		w.Header().Set("Content-Type", "application/json")
 		if Mean != 0.0 {
 			waitResponse()

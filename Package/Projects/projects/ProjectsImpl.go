@@ -5,10 +5,10 @@ import (
 )
 
 type Project struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	Status   string `json:"status"`
-	DBClient *postgres.PGClient
+	ID       int64              `json:"id"`
+	Name     string             `json:"name"`
+	Status   string             `json:"status"`
+	DBClient *postgres.PGClient `json:",omitempty"`
 }
 
 //Create - create new project and insert data to database

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
 )
 
@@ -28,49 +29,48 @@ func (s *StartRequest) Start() error {
 	var err error
 	var u, g, mod, userForGen float64
 	gencount := len(s.Generators)
-	pgclient := client.PGClient{}.New()
-	runid, err := pgclient.GetNewRunID()
+	runid, err := PgClient.GetNewRunID()
 	if err != nil {
 		return err
 	}
 	switch s.Gun {
 	case "gatling":
 		if gencount == 1 {
-			str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
+			str := strings.Join([]string{"cd", os.Getenv("MAVENPATH"), "&&", "mvn", "clean", "gatling:execute", "-Dgatling.simulationClass=com.testingexcellence.simulations." + s.Name}, " ")
 			for _, v := range s.Params {
 				for _, v1 := range v.ThreadGroupParams {
 					str = str + "-D" + v1.Name + "=" + v1.Value
 				}
 			}
-			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
-			err = pgclient.SetStartTest(s.Name, s.Type)
+			pathScript := filepath.Join(os.Getenv("DIRPROJECTS"), s.Projects, s.Gun)
+			err = PgClient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
 			}
 			go StartScenario(runid, s.Generators[0].Host, pathScript, s.Name+".zip", str)
-		} else {
-			for i := 0; i < gencount; i++ {
-				str := `cd ` + os.Getenv("MAVENPATH") + ` && mvn clean gatling:execute -Dgatling.simulationClass=com.testingexcellence.simulations.` + s.Name
-				for _, v := range s.Params {
-					for _, v1 := range v.ThreadGroupParams {
-						if v1.Type == "Threads" || v1.Type == "TargetLevel" {
-							u, _ = strconv.ParseFloat(v1.Value, 64)
-							g = float64(gencount)
-							mod = math.Mod(u, g)
-							userForGen = math.RoundToEven(mod)
-							str = str + "-D" + v1.Name + "=" + fmt.Sprint(userForGen)
-						} else {
-							str = str + "-D" + v1.Name + "=" + v1.Value
-						}
+			return nil
+		}
+		for i := 0; i < gencount; i++ {
+			str := strings.Join([]string{"cd", os.Getenv("MAVENPATH"), "&&", "mvn", "clean", "gatling:execute", "-Dgatling.simulationClass=com.testingexcellence.simulations." + s.Name}, " ")
+			for _, v := range s.Params {
+				for _, v1 := range v.ThreadGroupParams {
+					if v1.Type == "Threads" || v1.Type == "TargetLevel" {
+						u, _ = strconv.ParseFloat(v1.Value, 64)
+						g = float64(gencount)
+						mod = math.Mod(u, g)
+						userForGen = math.RoundToEven(mod)
+						str = strings.Join([]string{str, "-D", v1.Name, " = " + fmt.Sprint(userForGen)}, " ")
+					} else {
+						str = strings.Join([]string{str, "-D", v1.Name, " = " + v1.Value}, " ")
 					}
 				}
-				err = pgclient.SetStartTest(s.Name, s.Type)
-				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
-				if err != nil {
-					return err
-				}
-				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 			}
+			err = PgClient.SetStartTest(s.Name, s.Type)
+			pathScript := filepath.Join(os.Getenv("DIRPROJECTS"), s.Projects, s.Gun)
+			if err != nil {
+				return err
+			}
+			go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 		}
 	case "jmeter":
 		if gencount == 1 {
@@ -82,7 +82,7 @@ func (s *StartRequest) Start() error {
 			}
 			str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
 			pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
-			err = pgclient.SetStartTest(s.Name, s.Type)
+			err = PgClient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
 			}
@@ -107,7 +107,7 @@ func (s *StartRequest) Start() error {
 				pathScript := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/"
 				go StartScenario(runid, s.Generators[i].Host, pathScript, s.Name+".zip", str)
 			}
-			err = pgclient.SetStartTest(s.Name, s.Type)
+			err = PgClient.SetStartTest(s.Name, s.Type)
 			if err != nil {
 				return err
 			}

@@ -65,4 +65,18 @@ type PGClient interface {
 	/////Get service data
 	GetAllServices() (*[]postgres.Service, error)
 	GetService(id int64) (*postgres.Service, error)
+
+	//SCENARIOS
+	NewScenario(name string, typeTest string, gun string, projects string, params string) (err error)
+	UpdateScenario(id int64, name string, typeTest string, gun string, projects string, params string) (err error)
+	DeleteScenario(id int64) (err error)
+	//////Get Scenario Data
+	CheckScenario(name string, gun string, projects string) (res bool, err error)
+	GetScenarioName(id int64) (res string, err error)
+	GetNewRunID() (runID int64, err error)
+	GetLastScenarioID() (id int64, err error)
+	GetAllScenarios() (*[]postgres.Scenario, error)
+	//////Manage scenario
+	SetStartTest(testName string, testType string) (err error)
+	SetStopTest(runID string) error
 }

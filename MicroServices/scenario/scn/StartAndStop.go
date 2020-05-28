@@ -3,6 +3,7 @@ package scn
 import (
 	"io/ioutil"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -14,22 +15,24 @@ func StartScenario(runid int64, host string, pathScript string, fileName string,
 	user, _ := HostsAndUsers.Load(host)
 	cl, err := client.SSHClient{}.New(user.(string))
 	RunsGenerators.Store(host, host)
-	err = cl.Run(host, "mkdir /home/"+user.(string)+"/scripts")
+	scriptDir := filepath.Join("/home", user.(string), "scripts")
+	err = cl.Run(host, strings.Join([]string{"mkdir", "scriptDir"}, " "))
 	if err != nil {
 		return err
 	}
-	copyPath := pathScript + fileName
-	cmd := exec.Command("scp", copyPath, user.(string)+"@"+host+":/home/"+user.(string)+"/scripts/")
+	copyPath := strings.Join([]string{pathScript, fileName}, "")
+	cmd := exec.Command("scp", copyPath, strings.Join([]string{user.(string), "@", host, ":/home/", user.(string), "/scripts/"}, ""))
 	err = cmd.Run()
 	if err != nil {
 		return err
 	}
-	unzipSTR := "unzip /home/" + user.(string) + "/scripts/" + fileName + " -d " + "/home/" + user.(string) + "/scripts/"
+	//unzipSTR := "unzip /home/" + user.(string) + "/scripts/" + fileName + " -d " + "/home/" + user.(string) + "/scripts/"
+	unzipSTR := strings.Join([]string{"cd ", scriptDir, "; ", "unzip ", fileName}, "")
 	err = cl.Run(host, unzipSTR)
 	if err != nil {
 		return err
 	}
-	filesInfo, err := ioutil.ReadDir("/home/" + user.(string) + "/scripts/")
+	filesInfo, err := ioutil.ReadDir(scriptDir)
 	if err != nil {
 		return err
 	}
@@ -44,11 +47,11 @@ func StartScenario(runid int64, host string, pathScript string, fileName string,
 			break
 		}
 	}
-	err = cl.Run(host, "rm -rf /home/"+user.(string)+"/scripts/")
+	err = cl.Run(host, strings.Join([]string{"rm", "-rf", scriptDir}, " "))
 	if err != nil {
 		return err
 	}
-	err = client.PGClient{}.New().SetStopTest(strconv.FormatInt(runid, 10))
+	err = PgClient.SetStopTest(strconv.FormatInt(runid, 10))
 	if err != nil {
 		return err
 	}

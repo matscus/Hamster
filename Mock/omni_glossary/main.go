@@ -18,6 +18,7 @@ var (
 	keyPath      string
 	proto        string
 	listenport   string
+	path         string
 	wait         time.Duration
 	writeTimeout time.Duration
 	readTimeout  time.Duration
@@ -27,8 +28,9 @@ var (
 func main() {
 	flag.StringVar(&pemPath, "pempath", os.Getenv("SERVERREM"), "path to pem file")
 	flag.StringVar(&keyPath, "keypath", os.Getenv("SERVERKEY"), "path to key file")
-	flag.StringVar(&listenport, "port", "10000", "port to Listen")
+	flag.StringVar(&listenport, "port", "9093", "port to Listen")
 	flag.StringVar(&proto, "proto", "http", "http or https")
+	flag.StringVar(&path, "path", "/actuator/glossary/location", "path from handlers")
 	flag.BoolVar(&handlers.Requestlog, "request-log", false, "idle server timeout")
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully")
 	flag.DurationVar(&readTimeout, "read-timeout", time.Second*15, "read server timeout")
@@ -44,7 +46,7 @@ func main() {
 		ReadTimeout:  readTimeout,
 		IdleTimeout:  idleTimeout,
 	}
-	r.HandleFunc("/omni-glossary/api/v1/office/list", handlers.Middleware(handlers.Search)).Methods(http.MethodPost)
+	r.HandleFunc(path, handlers.Middleware(handlers.Search)).Methods(http.MethodPost)
 	http.Handle("/", r)
 	r.Use(mux.CORSMethodMiddleware(r))
 	go func() {

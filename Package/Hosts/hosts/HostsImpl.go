@@ -9,14 +9,14 @@ import (
 
 //Host - Generators struct
 type Host struct {
-	ID       int64    `json:"id"`
-	Host     string   `json:"host"`
-	Type     string   `json:"type,omitempty"`
-	User     string   `json:"user,omitempty"`
-	Password string   `json:"password,omitempty"`
-	State    string   `json:"state"`
-	Projects []string `json:"projects"`
-	DBClient *postgres.PGClient
+	ID       int64              `json:"id"`
+	Host     string             `json:"host"`
+	Type     string             `json:"type,omitempty"`
+	User     string             `json:"user,omitempty"`
+	Password string             `json:"password,omitempty"`
+	State    string             `json:"state"`
+	Projects []string           `json:"projects"`
+	DBClient *postgres.PGClient `json:",omitempty"`
 }
 
 //New - func to return new host interface

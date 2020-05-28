@@ -5,9 +5,9 @@ import (
 )
 
 type Role struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	DBClient *postgres.PGClient
+	ID       int64              `json:"id"`
+	Name     string             `json:"name"`
+	DBClient *postgres.PGClient `json:",omitempty"`
 }
 
 //Create - create new role and insert data to database
