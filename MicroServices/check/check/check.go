@@ -41,6 +41,7 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 	var port int
 	var id int64
 	prometheusstate := true
+	prometheusUri := os.Getenv("PROMETHEUSURI")
 	temp := make(map[string]Host)
 	l := len(*getResponceAllData)
 	checkhdd := CheckHDD{}
@@ -63,17 +64,17 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 	}
 	if prometheusstate {
 		res.Hosts.PrometheusState = true
-		responsefs, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=node_filesystem_avail_bytes/node_filesystem_size_bytes*100")
+		responsefs, err := http.Get(prometheusUri + "?query=node_filesystem_avail_bytes/node_filesystem_size_bytes*100")
 		if err != nil {
 			err = errors.New("error Get responsefs: %s" + err.Error())
 		}
 		defer responsefs.Body.Close()
-		responsecpu, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=avg%20by(instance)(max_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])-(min_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])))")
+		responsecpu, err := http.Get(prometheusUri + "?query=avg%20by(instance)(max_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])-(min_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])))")
 		if err != nil {
 			err = errors.New("error Get responsecpu: %s" + err.Error())
 		}
 		defer responsecpu.Body.Close()
-		responsemem, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes*100")
+		responsemem, err := http.Get(prometheusUri + "?query=node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes*100")
 		if err != nil {
 			err = errors.New("error Get responsemem: %s" + err.Error())
 		}
