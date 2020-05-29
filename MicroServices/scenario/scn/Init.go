@@ -23,7 +23,8 @@ var (
 	RunsGenerators sync.Map
 	//HostsAndUsers - sync map users from remote host
 	HostsAndUsers sync.Map
-	PgClient      *postgres.PGClient
+	//PgClient - postgres client from service
+	PgClient *postgres.PGClient
 )
 
 //GetResponse -  struct for response
@@ -47,22 +48,20 @@ func InitData() (err error) {
 	l := len(*scenarios)
 	GetResponseAllData.Scenarios = make([]scenario.Scenario, 0, l)
 	for i := 0; i < l; i++ {
-		var s scenario.Scenario
-		t := (*scenarios)[i]
-		s.ID = t.ID
-		s.Name = t.Name
-		s.Type = t.Type
-		s.LastModified = t.LastModified
-		s.Gun = t.Gun
-		s.Projects = t.Projects
 		var tgp []scenario.ThreadGroup
-
-		err := json.Unmarshal([]byte(t.TreadGroups), &tgp)
+		err := json.Unmarshal([]byte((*scenarios)[i].TreadGroups), &tgp)
 		if err != nil {
 			return (err)
 		}
-		s.ThreadGroups = tgp
-		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, s)
+		GetResponseAllData.Scenarios = append(GetResponseAllData.Scenarios, scenario.Scenario{
+			ID:           (*scenarios)[i].ID,
+			Name:         (*scenarios)[i].Name,
+			Type:         (*scenarios)[i].Type,
+			LastModified: (*scenarios)[i].LastModified,
+			Gun:          (*scenarios)[i].Gun,
+			Projects:     (*scenarios)[i].Projects,
+			ThreadGroups: tgp,
+		})
 	}
 	gen, err := PgClient.GetAllGenerators()
 	if err != nil {
@@ -71,18 +70,19 @@ func InitData() (err error) {
 	l = len(gen)
 	GetResponseAllData.Generators = make([]hosts.Host, 0, l)
 	for i := 0; i < l; i++ {
-		var g hosts.Host
-		g.ID = gen[i].ID
-		g.Host = gen[i].Host
-		g.Type = gen[i].Type
-		g.Projects = gen[i].Projects
-		_, ok := RunsGenerators.Load(g.Host)
+		_, ok := RunsGenerators.Load(gen[i].Host)
 		if ok {
-			g.State = "IsBusy"
+			gen[i].State = "IsBusy"
 		} else {
-			g.State = "Free"
+			gen[i].State = "Free"
 		}
-		GetResponseAllData.Generators = append(GetResponseAllData.Generators, g)
+		GetResponseAllData.Generators = append(GetResponseAllData.Generators, hosts.Host{
+			ID:       gen[i].ID,
+			Host:     gen[i].Host,
+			Type:     gen[i].Type,
+			Projects: gen[i].Projects,
+			State:    gen[i].State,
+		})
 	}
 	hostsAndUsers, err := PgClient.GetUsersAndHosts()
 	for k, v := range hostsAndUsers {
@@ -92,19 +92,17 @@ func InitData() (err error) {
 }
 
 //SetState -  init state struct for ws
-func SetState(s bool, id int64, n string, t string, d int64, gun string, g []hosts.Host) {
+func SetState(s bool, id int64, name string, scenarioType string, d int64, gun string, generators []hosts.Host) {
 	if s {
-		starttime := (time.Now().Unix() - time.Unix(10800, 0).Unix())
-		endtime := (starttime + time.Unix(d, 0).Unix())
-		var srv = scenario.State{}
-		srv.RunID = id
-		srv.Name = n
-		srv.Type = t
-		srv.StartTime = starttime
-		srv.EndTime = endtime
-		srv.Gun = gun
-		srv.Generators = g
-		GetState = append(GetState, srv)
+		GetState = append(GetState, scenario.State{
+			RunID:      id,
+			Name:       name,
+			Type:       scenarioType,
+			StartTime:  (time.Now().Unix() - time.Unix(10800, 0).Unix()),
+			EndTime:    ((time.Now().Unix() - time.Unix(10800, 0).Unix()) + time.Unix(d, 0).Unix()),
+			Gun:        gun,
+			Generators: generators,
+		})
 		return
 	}
 	for i := 0; i < len(GetState); i++ {
@@ -143,20 +141,20 @@ func CheckGen(g []hosts.Host) (res []GeneratorState, err error) {
 		}
 		_, err = client.Ping(g[i].Host)
 		if err != nil {
-			var genstate GeneratorState
-			genstate.Host = g[i].Host
-			genstate.State = "NotAvailable"
-			res = append(res, genstate)
+			res = append(res, GeneratorState{
+				Host:  g[i].Host,
+				State: "NotAvailable",
+			})
 			return res, err
 		}
 	}
 	for i := 0; i < l; i++ {
 		host, ok := RunsGenerators.Load(g[i].Host)
 		if ok {
-			var genstate GeneratorState
-			genstate.Host = host.(string)
-			genstate.State = "IsBusy"
-			res = append(res, genstate)
+			res = append(res, GeneratorState{
+				Host:  host.(string),
+				State: "IsBusy",
+			})
 		}
 	}
 	return res, err
