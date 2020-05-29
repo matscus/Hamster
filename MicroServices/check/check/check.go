@@ -5,72 +5,79 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
-	"github.com/matscus/Hamster/Package/Clients/client"
 	"github.com/matscus/Hamster/Package/Services/service"
 )
 
 //InitGetResponseAllData - function to obtain information about all services from the database. all services are append to slice Services
 func InitGetResponseAllData(project string) (responsealldata *[]service.Service, err error) {
-	pgclient := client.PGClient{}.New()
-	services, err := pgclient.GetProjectServices(project)
+	projects := strings.Split(project, ",")
+	services, err := pgClient.GetServicesByProject(projects)
 	if err != nil {
 		return nil, err
 	}
 	l := len(*services)
 	getResponceAllData := make([]service.Service, l, l)
 	for i := 0; i < l; i++ {
-		var s service.Service
-		t := (*services)[i]
-		s.ID = t.ID
-		s.Name = t.Name
-		s.Host = t.Host
-		s.URI = t.URI
-		s.Type = t.Type
-		s.Projects = t.Projects
-		getResponceAllData[i] = s
+		getResponceAllData[i] = service.Service{ID: (*services)[i].ID,
+			Name:     (*services)[i].Name,
+			Host:     (*services)[i].Host,
+			Type:     (*services)[i].Type,
+			Projects: (*services)[i].Projects,
+		}
 	}
 	return &getResponceAllData, nil
 }
 
 //CheckStend - function to check stehd, checks the status of monitoring agents, memory utilization, hard disks and processors.
 func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
+	var host string
+	var port int
+	var id int64
 	prometheusstate := true
 	temp := make(map[string]Host)
 	l := len(*getResponceAllData)
 	checkhdd := CheckHDD{}
 	checkcpu := CheckCPU{}
 	checkmem := CheckMemory{}
-	client, err := client.NewHTTPSClient()
+
 	for i := 0; i < l; i++ {
-		id := (*getResponceAllData)[i].ID
-		u := (*getResponceAllData)[i].URI
-		_, err = client.Get(u)
+		id = (*getResponceAllData)[i].ID
+		host = (*getResponceAllData)[i].Host
+		port = (*getResponceAllData)[i].Port
+		conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
 		if err != nil {
-			res.ServiceID = append(res.ServiceID, id)
+			res.ServiceRS = append(res.ServiceRS, ServerRS{ID: id, Status: false})
 			if (*getResponceAllData)[i].Name == "prometheus" {
 				prometheusstate = false
 			}
+		} else {
+			res.ServiceRS = append(res.ServiceRS, ServerRS{ID: id, Status: true})
+			conn.Close()
 		}
 	}
+
 	if prometheusstate {
+		res.Hosts.PrometheusState = true
 		responsefs, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=node_filesystem_avail_bytes/node_filesystem_size_bytes*100")
 		if err != nil {
 			err = errors.New("error Get responsefs: %s" + err.Error())
 		}
+		defer responsefs.Body.Close()
 		responsecpu, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=avg%20by(instance)(max_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])-(min_over_time(node_cpu_seconds_total{mode!=\"idle\"}[5m])))")
 		if err != nil {
 			err = errors.New("error Get responsecpu: %s" + err.Error())
 		}
+		defer responsecpu.Body.Close()
 		responsemem, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes*100")
 		if err != nil {
 			err = errors.New("error Get responsemem: %s" + err.Error())
 		}
-		defer responsefs.Body.Close()
-		defer responsecpu.Body.Close()
 		defer responsemem.Body.Close()
 		contentsfs, _ := ioutil.ReadAll(responsefs.Body)
 		contentscpu, _ := ioutil.ReadAll(responsecpu.Body)
@@ -133,11 +140,10 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 			}
 		}
 		for _, v := range temp {
-			res.Host = append(res.Host, v)
+			res.Hosts.Нost = append(res.Hosts.Нost, v)
 		}
 	} else {
-		host := Host{}
-		res.Host = append(res.Host, host)
+		res.Hosts.PrometheusState = false
 		err = errors.New("Prometheus is not avalible")
 	}
 	return res, err
