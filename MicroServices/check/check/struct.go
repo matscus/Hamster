@@ -2,10 +2,19 @@ package check
 
 //Result - result structure, contains the stend status, slice monitoring services/host slice and their status.
 type Result struct {
-	Status    bool    `json:"Status"`
-	ServiceID []int64 `json:"serviceid"`
+	Status    bool       `json:"status"`
+	ServiceRS []ServerRS `json:"servicers"`
 	//Monitoring []Monitoring `json:"Monitoring"`
-	Host []Host `json:"Host"`
+	Hosts struct {
+		PrometheusState bool   `json:"prometheusstate"`
+		Нost            []Host `json:"hosts,omitempty"`
+	}
+}
+
+//ServerRS - struct from response server status ad id
+type ServerRS struct {
+	ID     int64 `json:"id"`
+	Status bool  `json:"status"`
 }
 
 //Host - struct for host info, contains host(IP addr),CPU value,HDD value,Memory value
@@ -28,7 +37,7 @@ type Monitoring struct {
 type CheckCPU struct {
 	Status string `json:"status"`
 	Data   struct {
-		ResultType string `json:"resultType"`
+		ResultType string `json:"resulttype"`
 		Result     []struct {
 			Metric struct {
 				Instance string `json:"instance"`
