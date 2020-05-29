@@ -43,12 +43,7 @@ func main() {
 
 	r.HandleFunc("/api/v1/auth/new", middleware.MiddlewareAuth(handlers.GetToken)).Methods(http.MethodPost, http.MethodOptions)
 	http.Handle("/api/v1/auth/", r)
-	srv := &http.Server{
-		Addr:         host + ":" + listenport,
-		WriteTimeout: writeTimeout,
-		ReadTimeout:  readTimeout,
-		IdleTimeout:  idleTimeout,
-	}
+
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.Println("Get interface adres error: ", err.Error())
@@ -58,10 +53,15 @@ func main() {
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				os.Stdout.WriteString(ipnet.IP.String() + "\n")
 				host = ipnet.IP.String()
 			}
 		}
+	}
+	srv := &http.Server{
+		Addr:         host + ":" + listenport,
+		WriteTimeout: writeTimeout,
+		ReadTimeout:  readTimeout,
+		IdleTimeout:  idleTimeout,
 	}
 
 	go func() {
