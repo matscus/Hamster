@@ -28,6 +28,7 @@ func InitGetResponseAllData(project string) (responsealldata *[]service.Service,
 			Name:     (*services)[i].Name,
 			Host:     (*services)[i].Host,
 			Type:     (*services)[i].Type,
+			Port:     (*services)[i].Port,
 			Projects: (*services)[i].Projects,
 		}
 	}
@@ -45,7 +46,6 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 	checkhdd := CheckHDD{}
 	checkcpu := CheckCPU{}
 	checkmem := CheckMemory{}
-
 	for i := 0; i < l; i++ {
 		id = (*getResponceAllData)[i].ID
 		host = (*getResponceAllData)[i].Host
@@ -61,7 +61,6 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 			conn.Close()
 		}
 	}
-
 	if prometheusstate {
 		res.Hosts.PrometheusState = true
 		responsefs, err := http.Get(os.Getenv("PROMETHEUSURI") + "?query=node_filesystem_avail_bytes/node_filesystem_size_bytes*100")
@@ -125,16 +124,16 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 			var h Host
 			tt := fmt.Sprint(checkmem.Data.Result[i].Value[1])
 			v, _ := strconv.ParseFloat(tt, 64)
-			if v <= 80 {
+			if v <= 30 {
 				if v, ok := temp[checkmem.Data.Result[i].Metric.Instance]; ok {
 					h.Host = v.Host
 					h.CPU = v.CPU
 					h.HDD = v.HDD
-					h.Memory = v.Memory + "memory is used over 20%"
+					h.Memory = v.Memory + "memory is used over 70%"
 					temp[checkmem.Data.Result[i].Metric.Instance] = h
 				} else {
 					h.Host = checkmem.Data.Result[i].Metric.Instance
-					h.Memory = "memory is used over 20%"
+					h.Memory = "memory is used over 70%"
 					temp[checkmem.Data.Result[i].Metric.Instance] = h
 				}
 			}
