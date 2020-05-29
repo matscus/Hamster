@@ -15,7 +15,6 @@ import (
 func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT":
-		var s scenario.Scenario
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -25,11 +24,13 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		s.ID = id
-		s.Name = r.FormValue("scenarioName")
-		s.Type = r.FormValue("scenarioType")
-		s.Gun = r.FormValue("gun")
-		s.Projects = r.FormValue("project")
+		s := scenario.Scenario{
+			ID:       id,
+			Name:     r.FormValue("scenarioName"),
+			Type:     r.FormValue("scenarioType"),
+			Gun:      r.FormValue("gun"),
+			Projects: r.FormValue("project"),
+		}
 		oldname, err := s.GetNameForID()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -135,7 +136,6 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR] Update done, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	case "DELETE":
-		var s scenario.Scenario
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -145,11 +145,13 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		s.ID = id
-		s.Name = r.FormValue("scenarioName")
-		s.Type = r.FormValue("scenarioType")
-		s.Gun = r.FormValue("gun")
-		s.Projects = r.FormValue("project")
+		s := scenario.Scenario{
+			ID:       id,
+			Name:     r.FormValue("scenarioName"),
+			Type:     r.FormValue("scenarioType"),
+			Gun:      r.FormValue("gun"),
+			Projects: r.FormValue("project"),
+		}
 		err = s.DeleteScenario()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

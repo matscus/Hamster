@@ -469,7 +469,7 @@ func (c PGClient) GetProjectServices(project string) (*[]subset.AllService, erro
 		}
 		serviceIDs = append(serviceIDs, tempID)
 	}
-	rows, err = db.Query("select id,name,host,uri,type from tServices where id =any($1)", pg.Array(serviceIDs))
+	rows, err = db.Query("select id,name,host,port,type from tServices where id =any($1)", pg.Array(serviceIDs))
 	if err != nil {
 		return nil, err
 	}

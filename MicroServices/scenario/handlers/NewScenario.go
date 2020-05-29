@@ -17,12 +17,13 @@ import (
 
 //NewScenario - handle to insert new scenario to table
 func NewScenario(w http.ResponseWriter, r *http.Request) {
-	var s scenario.Scenario
-	s.Name = r.FormValue("scenarioName")
-	s.Type = r.FormValue("scenarioType")
-	s.Gun = r.FormValue("gun")
-	s.Projects = r.FormValue("project")
-	s.DBClient = PgClient
+	s := scenario.Scenario{
+		Name:     r.FormValue("scenarioName"),
+		Type:     r.FormValue("scenarioName"),
+		Gun:      r.FormValue("gun"),
+		Projects: r.FormValue("project"),
+		DBClient: PgClient,
+	}
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
