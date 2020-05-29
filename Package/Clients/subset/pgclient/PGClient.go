@@ -62,6 +62,7 @@ type PGClient interface {
 	NewService(name string, binsIB int64, host string, port int, typeService string, runSTR string, projects []string, owner string) (err error)
 	UpdateService(id int64, port int, runSTR string) (err error)
 	DeleteService(id int64) (err error)
+	GetServicesByProject(projects []string) (*[]postgres.Service, error)
 	/////Get service data
 	GetAllServices() (*[]postgres.Service, error)
 	GetService(id int64) (*postgres.Service, error)

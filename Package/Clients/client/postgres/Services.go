@@ -70,3 +70,47 @@ func (c PGClient) GetService(id int64) (res *Service, err error) {
 	err = c.DB.QueryRow("select type,name,runstr from tServices where id=$1", id).Scan(&res.Type, &res.Name, &res.RunSTR)
 	return res, err
 }
+
+//GetServicesByProject - func return all service for user project
+func (c PGClient) GetServicesByProject(projects []string) (*[]Service, error) {
+	var projectsID []int64
+	rows, err := c.DB.Query("select id from tProjects where name = any($1)", pg.Array(projects))
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var tempID int64
+		err := rows.Scan(&tempID)
+		if err != nil {
+			return nil, err
+		}
+		projectsID = append(projectsID, tempID)
+	}
+
+	rows, err = c.DB.Query("select service_id from tServiceProjects where project_id=any($1)", pg.Array(projectsID))
+	if err != nil {
+		return nil, err
+	}
+	serviceIDs := make([]int64, 0, 10)
+	for rows.Next() {
+		var tempID int64
+		err := rows.Scan(&tempID)
+		if err != nil {
+			return nil, err
+		}
+		serviceIDs = append(serviceIDs, tempID)
+	}
+	rows, err = c.DB.Query("select id,name,host,port,type from tServices where id =any($1)", pg.Array(serviceIDs))
+	if err != nil {
+		return nil, err
+	}
+	res := make([]Service, 0, 200)
+	for rows.Next() {
+		t := Service{}
+		if err = rows.Scan(&t.ID, &t.Name, &t.Host, &t.Port, &t.Type); err != nil {
+			return &res, err
+		}
+		res = append(res, t)
+	}
+	return &res, err
+}
