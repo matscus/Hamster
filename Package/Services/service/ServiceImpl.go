@@ -44,8 +44,7 @@ func (s *Service) Stop(user string) error {
 	if err != nil {
 		return err
 	}
-	str := "pkill " + s.Name
-	err = client.Run(s.Host, str)
+	err = client.Run(s.Host, "pkill "+s.Name)
 	if err != nil {
 	}
 	return err
