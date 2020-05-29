@@ -94,47 +94,49 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 			err = errors.New("error unmarshal contentsmem: %s" + err.Error())
 		}
 		for i := 0; i < len(checkcpu.Data.Result); i++ {
-			var h Host
 			tt := fmt.Sprint(checkcpu.Data.Result[i].Value[1])
 			v, _ := strconv.ParseFloat(tt, 64)
 			if v >= 70 {
-				h.Host = checkcpu.Data.Result[i].Metric.Instance
-				h.CPU = "cpu is used over 70%\n"
-				temp[checkcpu.Data.Result[i].Metric.Instance] = h
+				temp[checkcpu.Data.Result[i].Metric.Instance] = Host{
+					Host: checkcpu.Data.Result[i].Metric.Instance,
+					CPU:  "cpu is used over 70%\n",
+				}
 			}
 		}
 		for i := 0; i < len(checkhdd.Data.Result); i++ {
-			var h Host
 			tt := fmt.Sprint(checkhdd.Data.Result[i].Value[1])
 			v, _ := strconv.ParseFloat(tt, 64)
 			if v <= 10 {
 				if v, ok := temp[checkhdd.Data.Result[i].Metric.Instance]; ok {
-					h.Host = v.Host
-					h.CPU = v.CPU
-					h.HDD = v.HDD + "free space in mountpoint " + checkhdd.Data.Result[i].Metric.Mountpoint + " <10%\n"
-					temp[checkhdd.Data.Result[i].Metric.Instance] = h
+					temp[checkhdd.Data.Result[i].Metric.Instance] = Host{
+						Host: v.Host,
+						CPU:  v.CPU,
+						HDD:  v.HDD + "free space in mountpoint " + checkhdd.Data.Result[i].Metric.Mountpoint + " <10%\n",
+					}
 				} else {
-					h.Host = checkhdd.Data.Result[i].Metric.Instance
-					h.HDD = "free space in mountpoint " + checkhdd.Data.Result[i].Metric.Mountpoint + " <10%\n"
-					temp[checkhdd.Data.Result[i].Metric.Instance] = h
+					temp[checkhdd.Data.Result[i].Metric.Instance] = Host{
+						Host: checkhdd.Data.Result[i].Metric.Instance,
+						HDD:  "free space in mountpoint " + checkhdd.Data.Result[i].Metric.Mountpoint + " <10%\n",
+					}
 				}
 			}
 		}
 		for i := 0; i < len(checkmem.Data.Result); i++ {
-			var h Host
 			tt := fmt.Sprint(checkmem.Data.Result[i].Value[1])
 			v, _ := strconv.ParseFloat(tt, 64)
 			if v <= 30 {
 				if v, ok := temp[checkmem.Data.Result[i].Metric.Instance]; ok {
-					h.Host = v.Host
-					h.CPU = v.CPU
-					h.HDD = v.HDD
-					h.Memory = v.Memory + "memory is used over 70%"
-					temp[checkmem.Data.Result[i].Metric.Instance] = h
+					temp[checkmem.Data.Result[i].Metric.Instance] = Host{
+						Host:   v.Host,
+						CPU:    v.CPU,
+						HDD:    v.HDD,
+						Memory: v.Memory + "memory is used over 70%",
+					}
 				} else {
-					h.Host = checkmem.Data.Result[i].Metric.Instance
-					h.Memory = "memory is used over 70%"
-					temp[checkmem.Data.Result[i].Metric.Instance] = h
+					temp[checkmem.Data.Result[i].Metric.Instance] = Host{
+						Host:   checkmem.Data.Result[i].Metric.Instance,
+						Memory: "memory is used over 70%",
+					}
 				}
 			}
 		}
