@@ -12,3 +12,6 @@ Package/JMXParser/test.xml
 Mock/YandexCloudAPI/server.pem
 Package/JMXParser/test.xml
 Package/JMXParser/test.xml
+server.pem
+server.key
+MicroServices/auth/auth
