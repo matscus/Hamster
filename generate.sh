@@ -7,9 +7,9 @@ openssl req \
     -newkey rsa:2048 \
     -x509 \
     -nodes \
-    -keyout ~/hamster/ssl/server.key \
+    -keyout $GOPATH/src/github.com/matscus/Hamster/server.key \
     -new \
-    -out ~/hamster/ssl/server.pem \
+    -out $GOPATH/src/github.com/matscus/Hamster/server.pem \
     -subj /CN=localhost \
     -reqexts SAN \
     -extensions SAN \
