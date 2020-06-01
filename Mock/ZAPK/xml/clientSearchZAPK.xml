@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Request xmlns="http://www.gpb.ru/zapk/esfl"><RequestGUID>abc3fe25-52cb-4968-8ef3-27e611c4b00e</RequestGUID><RequestTim
-e>2019-03-26T11:04:48.639</RequestTime><UserLogin>gpbxxx</UserLogin><UserName>User</UserName><IPRequest>10.147.10.71</IPRequest><SystemCode>ESFL</SystemCo
-de><RequesterSystemCode>DRTL</RequesterSystemCode><Customer><HID>4528282</HID><BirthDate>1985-07-02</BirthDate><FirstName>АЛЕКСЕЙ</FirstName><LastName>КУБАРЕВ</LastName><Midd
-leName>ВЛАДИМИРОВИЧ</MiddleName><IdentityDocument><DocumentType>21</DocumentType><SeriesNumber>6304402585</SeriesNumber></IdentityDocument></Customer></Request>
