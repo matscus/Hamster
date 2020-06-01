@@ -1,4 +1,4 @@
-package client
+package httpsimpl
 
 import (
 	"crypto/tls"
