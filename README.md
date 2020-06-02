@@ -1,5 +1,5 @@
 # Hamster
-## Backend from system automatisation perfomance testing
+## Backend from system automation perfomance testing
 
 
 used as a  frontend  https://github.com/kolesnikovm/automation-front
