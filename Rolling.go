@@ -59,6 +59,10 @@ func initBashrc(configPath string) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+	_, err = exec.Command("source", "~/.bashrc").Output()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -133,6 +137,36 @@ func createCRTandKey() error {
 	err = cmd.Run()
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func BuildAndRunServices() (err error) {
+	build := []string{
+		"go build -o $GOPATH/src/github.com/matscus/Hamster/MicroServices/auth/auth $GOPATH/src/github.com/matscus/Hamster/MicroServices/auth/main.go",
+		"go build -o $GOPATH/src/github.com/matscus/Hamster/MicroServices/service/service $GOPATH/src/github.com/matscus/Hamster/MicroServices/service/main.go",
+		"go build -o $GOPATH/src/github.com/matscus/Hamster/MicroServices/scenario/scenario $GOPATH/src/github.com/matscus/Hamster/MicroServices/scenario/main.go",
+		"go build -o $GOPATH/src/github.com/matscus/Hamster/MicroServices/check/check $GOPATH/src/github.com/matscus/Hamster/MicroServices/check/main.go",
+		"go build -o $GOPATH/src/github.com/matscus/Hamster/MicroServices/admins/admins $GOPATH/src/github.com/matscus/Hamster/MicroServices/check/admins.go",
+	}
+	run := []string{
+		"hohup $GOPATH/src/github.com/matscus/Hamster/MicroServices/auth/./auth &",
+		"hohup $GOPATH/src/github.com/matscus/Hamster/MicroServices/service/./service &",
+		"hohup $GOPATH/src/github.com/matscus/Hamster/MicroServices/scenario/./scenario &",
+		"hohup $GOPATH/src/github.com/matscus/Hamster/MicroServices/check/./check &",
+		"hohup $GOPATH/src/github.com/matscus/Hamster/MicroServices/admins/./admins &",
+	}
+	for i := 0; i < len(build); i++ {
+		_, err = exec.Command("bash", "-c", build[i]).Output()
+		if err != nil {
+			return err
+		}
+	}
+	for i := 0; i < len(run); i++ {
+		_, err = exec.Command("bash", "-c", run[i]).Output()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
