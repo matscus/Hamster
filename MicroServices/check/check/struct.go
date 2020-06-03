@@ -2,13 +2,12 @@ package check
 
 //Result - result structure, contains the stend status, slice monitoring services/host slice and their status.
 type Result struct {
-	Status    bool       `json:"status"`
-	ServiceRS []ServerRS `json:"servicers"`
+	ServiceRS []ServerRS `json:"services"`
 	//Monitoring []Monitoring `json:"Monitoring"`
 	Hosts struct {
 		PrometheusState bool   `json:"prometheusstate"`
 		Нost            []Host `json:"hosts,omitempty"`
-	}
+	} `json:"hosts"`
 }
 
 //ServerRS - struct from response server status ad id
