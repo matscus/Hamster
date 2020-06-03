@@ -14,20 +14,23 @@ import (
 func StartScenario(runid int64, host string, pathScript string, fileName string, str string) (err error) {
 	user, _ := HostsAndUsers.Load(host)
 	cl, err := client.SSHClient{}.New(user.(string))
+	if err != nil {
+		return err
+	}
 	RunsGenerators.Store(host, host)
 	scriptDir := filepath.Join("/home", user.(string), "scripts")
-	err = cl.Run(host, strings.Join([]string{"mkdir", "scriptDir"}, " "))
+	err = cl.Run(host, strings.Join([]string{"mkdir", scriptDir}, " "))
 	if err != nil {
 		return err
 	}
 	copyPath := strings.Join([]string{pathScript, fileName}, "")
-	cmd := exec.Command("scp", copyPath, strings.Join([]string{user.(string), "@", host, ":/home/", user.(string), "/scripts/"}, ""))
+	cmd := exec.Command("scp", copyPath, strings.Join([]string{user.(string), "@", host, ":/home/", user.(string), "/scripts/", fileName}, ""))
 	err = cmd.Run()
 	if err != nil {
 		return err
 	}
 	//unzipSTR := "unzip /home/" + user.(string) + "/scripts/" + fileName + " -d " + "/home/" + user.(string) + "/scripts/"
-	unzipSTR := strings.Join([]string{"cd ", scriptDir, "; ", "unzip ", fileName}, "")
+	unzipSTR := strings.Join([]string{"cd ", scriptDir, " && ", "unzip ", fileName}, "")
 	err = cl.Run(host, unzipSTR)
 	if err != nil {
 		return err
