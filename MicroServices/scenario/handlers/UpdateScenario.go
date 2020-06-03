@@ -30,6 +30,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			Type:     r.FormValue("scenarioType"),
 			Gun:      r.FormValue("gun"),
 			Projects: r.FormValue("project"),
+			DBClient: PgClient,
 		}
 		oldname, err := s.GetNameForID()
 		if err != nil {
@@ -137,6 +138,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 	case "DELETE":
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
+		log.Println(id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, errWrite := w.Write([]byte("{\"Message\":\"Parse scenario ID error: " + err.Error() + "\"}"))
@@ -151,6 +153,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 			Type:     r.FormValue("scenarioType"),
 			Gun:      r.FormValue("gun"),
 			Projects: r.FormValue("project"),
+			DBClient: PgClient,
 		}
 		err = s.DeleteScenario()
 		if err != nil {
