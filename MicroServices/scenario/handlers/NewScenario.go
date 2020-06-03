@@ -19,7 +19,7 @@ import (
 func NewScenario(w http.ResponseWriter, r *http.Request) {
 	s := scenario.Scenario{
 		Name:     r.FormValue("scenarioName"),
-		Type:     r.FormValue("scenarioName"),
+		Type:     r.FormValue("scenarioType"),
 		Gun:      r.FormValue("gun"),
 		Projects: r.FormValue("project"),
 		DBClient: PgClient,
@@ -375,11 +375,6 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 					log.Printf("[ERROR] Scenario create complited, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
 				}
 				return
-			}
-			w.WriteHeader(http.StatusOK)
-			_, errWrite = w.Write([]byte("{\"Message\":\"Scenario create complited\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario create complited, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 			}
 			break
 		}
