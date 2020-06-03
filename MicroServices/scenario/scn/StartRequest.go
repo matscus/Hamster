@@ -19,7 +19,7 @@ type StartRequest struct {
 	Name       string `json:"name"`
 	Type       string `json:"type"`
 	Gun        string `json:"gun"`
-	Projects   string `json:"projects"`
+	Projects   string `json:"project"`
 	Generators []hosts.Host
 	Params     []scenario.ThreadGroup
 }
@@ -74,10 +74,13 @@ func (s *StartRequest) Start() error {
 		}
 	case "jmeter":
 		if gencount == 1 {
-			str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t scripts/$$$"
+			user, _ := HostsAndUsers.Load(s.Generators[0].Host)
+			str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t /home/" + user.(string) + "/scripts/$$$"
 			for _, v := range s.Params {
 				for _, v1 := range v.ThreadGroupParams {
-					str = str + "-J" + v1.Name + "=" + v1.Value + " "
+					if v1.Name != "" {
+						str = str + "-J" + v1.Name + "=" + v1.Value + " "
+					}
 				}
 			}
 			str = str + " -JRunID=" + strconv.FormatInt(runid, 10) + " &> /dev/null"
@@ -89,7 +92,8 @@ func (s *StartRequest) Start() error {
 			go StartScenario(runid, s.Generators[0].Host, pathScript, s.Name+".zip", str)
 		} else {
 			for i := 0; i < gencount; i++ {
-				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t scripts/$$$"
+				user, _ := HostsAndUsers.Load(s.Generators[i].Host)
+				str := "nohup " + os.Getenv("JMETERPATH") + "./jmeter.sh -n -t /home/" + user.(string) + "/scripts/$$$"
 				for _, v := range s.Params {
 					for _, v1 := range v.ThreadGroupParams {
 						if v1.Type == "Threads" || v1.Type == "TargetLevel" {
@@ -97,9 +101,13 @@ func (s *StartRequest) Start() error {
 							g = float64(gencount)
 							mod = math.Mod(u, g)
 							userForGen = math.RoundToEven(mod)
-							str = str + "-J" + v1.Name + "=" + fmt.Sprint(userForGen)
+							if v1.Name != "" {
+								str = str + "-J" + v1.Name + "=" + fmt.Sprint(userForGen)
+							}
 						} else {
-							str = str + "-J" + v1.Name + "=" + v1.Value
+							if v1.Name != "" {
+								str = str + "-J" + v1.Name + "=" + v1.Value
+							}
 						}
 					}
 				}
