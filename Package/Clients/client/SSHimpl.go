@@ -62,8 +62,7 @@ func (c SSHClient) Run(target string, str string) error {
 		return err
 	}
 	defer session.Close()
-	session.Run(str)
-	return err
+	return session.Run(str)
 }
 
 //RunNoWait - run comant no wait os code
