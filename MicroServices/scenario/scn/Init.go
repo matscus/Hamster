@@ -131,7 +131,6 @@ func СheckRun() (res bool) {
 
 //CheckGen - func fo check state generators
 func CheckGen(g []hosts.Host) (res []GeneratorState, err error) {
-
 	l := len(g)
 	for i := 0; i < l; i++ {
 		user, _ := HostsAndUsers.Load(g[i].Host)
