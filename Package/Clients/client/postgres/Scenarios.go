@@ -55,7 +55,7 @@ func (c PGClient) SetStopTest(runID string) error {
 	t := time.Now().Unix()
 	timestamp := strconv.FormatInt(t, 10)
 	id, _ := strconv.Atoi(runID)
-	_, err := c.DB.Exec("update runs set stop_time=to_timestamp($1) where id=$2", timestamp, id)
+	_, err := c.DB.Exec("update truns set stop_time=to_timestamp($1) where id=$2", timestamp, id)
 	if err != nil {
 		return err
 	}
@@ -64,9 +64,16 @@ func (c PGClient) SetStopTest(runID string) error {
 
 //GetNewRunID - return new run ID
 func (c PGClient) GetNewRunID() (runID int64, err error) {
-	err = c.DB.QueryRow("select max(id) from runs").Scan(&runID)
+	rows, err := c.DB.Query("select max(id) from truns")
 	if err != nil {
 		return runID, err
+	}
+	for rows.Next() {
+		err := rows.Scan(&runID)
+		if err != nil {
+			runID = 1
+			return runID, nil
+		}
 	}
 	return runID + 1, err
 }
@@ -87,7 +94,7 @@ func (c PGClient) CheckScenario(name string, gun string, projects string) (res b
 
 //SetStartTest - insert scenario values to table runs at start scenario
 func (c PGClient) SetStartTest(testName string, testType string) (err error) {
-	_, err = c.DB.Exec("insert into runs (test_name,test_type,start_time,stop_time,status,comment,state) values ($1,$2,now(),to_timestamp(0),'','','')", testName, testType)
+	_, err = c.DB.Exec("insert into truns (test_name,test_type,start_time,stop_time,status,comment,state) values ($1,$2,now(),to_timestamp(0),'','','')", testName, testType)
 	return err
 }
 
@@ -99,6 +106,6 @@ func (c PGClient) UpdateScenario(id int64, name string, typeTest string, gun str
 
 //DeleteScenario - delete scenario from db
 func (c PGClient) DeleteScenario(id int64) (err error) {
-	_, err = c.DB.Exec("delete from scenarios where id=$1", id)
+	_, err = c.DB.Exec("delete from tscenarios where id=$1", id)
 	return err
 }
