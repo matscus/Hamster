@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/matscus/Hamster/Package/Projects/projects"
 )
@@ -46,6 +47,17 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = project.Create()
 		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			if errWrite != nil {
+				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+			}
+			return
+		}
+		os.MkdirAll(os.Getenv("DIRPROJECTS")+"/"+project.Name+"/jmeter", 0777)
+		if os.IsExist(err) {
+			//todo
+		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 			if errWrite != nil {
