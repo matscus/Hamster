@@ -1,4 +1,4 @@
-![alt text](https://github.com/matscus/Hamster/tree/master/image/logo.png?raw=true "Title")
+![logo](https://user-images.githubusercontent.com/32362269/83656973-c0c1af00-a5af-11ea-938c-d8d10dbda05d.png)
 
 # Hamster
 ## Backend from system automation perfomance testing
