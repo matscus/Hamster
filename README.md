@@ -1,4 +1,4 @@
-![logo](https://user-images.githubusercontent.com/32362269/83656973-c0c1af00-a5af-11ea-938c-d8d10dbda05d.png)
+![logo](https://github.com/matscus/Hamster/blob/master/image/logo.png)
 
 # Hamster
 ## Backend from system automation perfomance testing
