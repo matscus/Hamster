@@ -64,3 +64,9 @@ func (c PGClient) GetProjectsIDtoString(projects []string) (ids []string, err er
 	}
 	return ids, nil
 }
+
+//GetProjectName - func return project name
+func (c PGClient) GetProjectName(id int64) (projectName string, err error) {
+	err = c.DB.QueryRow("select name from tProjects where id=$1", id).Scan(&projectName)
+	return projectName, err
+}

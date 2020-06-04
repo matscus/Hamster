@@ -49,6 +49,7 @@ type PGClient interface {
 	GetUserProjects(userID int64) (projects []string, err error)
 	GetProjectsIDtoString(projects []string) (ids []string, err error)
 	GetProjectsIDtoInt(projects []string) (ids []int, err error)
+	GetProjectName(id int64) (projectName string, err error)
 
 	GetUserHash(user string) (hash string, err error)                              //
 	GetUserPasswordExp(user string) (exp string, err error)                        //
