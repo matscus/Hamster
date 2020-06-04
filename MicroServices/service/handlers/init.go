@@ -31,7 +31,6 @@ func init() {
 	for k, v := range hostsAndUsers {
 		HostsAndUsers.Store(k, v)
 	}
-	log.Println(HostsAndUsers)
 }
 
 //InitGetResponseAllData - init gorutune for get actual status once in the minute
