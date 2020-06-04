@@ -9,6 +9,7 @@ import (
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //UpdateOrDeleteScenario - handle for update scenario values to table
@@ -17,11 +18,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Parse scenario ID error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Parse scenario ID error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		s := scenario.Scenario{
@@ -34,57 +31,33 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		oldname, err := s.GetNameForID()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Get scenario name error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Get scenario name error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip")
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Rename scenario zip file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Rename scenario zip file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = r.ParseMultipartForm(32 << 20)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Parse Multi part Form error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario Parse Multi part Form error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		file, _, err := r.FormFile("uploadFile")
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Upload scenario file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Upload scenario file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		if file == nil {
 			err = s.Update()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Update scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				httperror.WriteError(w, http.StatusInternalServerError, err)
 				return
 			}
 			err = scn.InitData()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Init scenarios data error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Init scenarios data error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				httperror.WriteError(w, http.StatusInternalServerError, err)
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -97,38 +70,23 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Open scenario file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Open scenario file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
+			return
 		}
 		defer f.Close()
 		_, err = io.Copy(f, file)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"IO Copy scenario file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] IO Copy scenario file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = s.Update()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Update scenario error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Update scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = scn.InitData()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Update done, but init data error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Update done, but init data error and error Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -140,11 +98,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		log.Println(id)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Parse scenario ID error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Parse scenario ID error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		s := scenario.Scenario{
@@ -157,29 +111,17 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		err = s.DeleteScenario()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Delete scenario error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Delete scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = os.Remove(os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip")
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Delete from DB is complited, but remove scenario file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Delete from DB is complited, but remove scenario file error and Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		err = scn.InitData()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Delete scenario complited, but but scenario init data error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Delete scenario complited, but but scenario init data error and Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

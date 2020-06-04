@@ -7,26 +7,20 @@ import (
 	"os"
 
 	"github.com/matscus/Hamster/Package/Projects/projects"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetAllProjects -  return all projects
 func GetAllProjects(w http.ResponseWriter, r *http.Request) {
 	allproject, err := pgClient.GetAllProjects()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(allproject)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -35,11 +29,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 	project := projects.Project{}
 	err := json.NewDecoder(r.Body).Decode(&project)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	project.DBClient = pgClient
@@ -47,11 +37,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = project.Create()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		os.MkdirAll(os.Getenv("DIRPROJECTS")+"/"+project.Name+"/jmeter", 0777)
@@ -73,21 +59,13 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		name, err := project.DBClient.GetProjectName(project.ID)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		os.Rename(os.Getenv("DIRPROJECTS")+"/"+name, os.Getenv("DIRPROJECTS")+"/"+project.Name)
 		err = project.Update()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -99,11 +77,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 		os.Remove(os.Getenv("DIRPROJECTS") + "/" + project.Name)
 		err = project.Delete()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

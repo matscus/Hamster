@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetLastParams - init slace for response last scenario params
@@ -21,11 +22,8 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 				params := res.(scn.StartRequest)
 				err := json.NewEncoder(w).Encode(params)
 				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode json error: " + err.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario encode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+					httperror.WriteError(w, http.StatusInternalServerError, err)
+					return
 				}
 				return
 			}

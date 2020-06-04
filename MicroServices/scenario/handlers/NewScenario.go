@@ -13,6 +13,7 @@ import (
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //NewScenario - handle to insert new scenario to table
@@ -26,11 +27,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	}
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Parse Multi part Form error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario Parse Multi part Form error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	ifExist, _ := s.CheckScenario()
@@ -45,11 +42,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("uploadFile")
 	defer file.Close()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Upload scenario error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Upload scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	authHeader := r.Header.Get("Authorization")
@@ -62,11 +55,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 		newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 		err := ioutil.WriteFile(newFile, scripts.ScriptFile, os.FileMode(0755))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO Write file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario IO Write file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		l := len(scripts.ParseParams)
@@ -99,11 +88,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		err = scn.InitData()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Create scenario done, but  scenario init data error" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Create scenario done, but  scenario init data error and but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -116,11 +101,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 	f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario open new file error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario open new file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	defer f.Close()
@@ -144,11 +125,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	tempDir := os.Getenv("DIRPROJECTS") + "/temp/"
 	err = os.Mkdir(tempDir, os.FileMode(0755))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create temp dir error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario create temp dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	cmd := exec.Command("unzip", newFile, "-d", tempDir)
@@ -369,11 +346,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			}
 			err = scn.InitData()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create complited, but not update init data " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario create complited, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				httperror.WriteError(w, http.StatusInternalServerError, err)
 				return
 			}
 			break

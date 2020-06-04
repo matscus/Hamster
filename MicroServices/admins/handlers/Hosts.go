@@ -7,26 +7,20 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetAllHosts -  handle function, for get all hosts
 func GetAllHosts(w http.ResponseWriter, r *http.Request) {
 	allhosts, err := pgClient.GetAllHosts()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(allhosts)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter  due: %s", errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -36,20 +30,13 @@ func GetAllHostsWithProject(w http.ResponseWriter, r *http.Request) {
 	project, _ := params["project"]
 	allhosts, err := pgClient.GetAllHostsWithProject(project)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(allhosts)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter  due: %s", errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -58,11 +45,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	host := hosts.Host{}
 	err := json.NewDecoder(r.Body).Decode(&host)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	host.DBClient = pgClient
@@ -70,11 +53,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = host.Create()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -85,11 +64,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		err = host.Update()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -100,11 +75,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err = host.Delete()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

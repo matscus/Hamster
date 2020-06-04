@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //StartScenario - handle to start scenario
@@ -14,11 +15,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario decode json error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario decode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	runsgen, err := scn.CheckGen(s.Generators)
@@ -26,10 +23,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		err := json.NewEncoder(w).Encode(runsgen)
 		if err != nil {
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario check generators error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario check generators error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -38,11 +32,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		scn.RunsGenerators.Store(s.Name, s)
 		err = s.Start()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario start error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario start error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -55,9 +45,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	err = json.NewEncoder(w).Encode(runsgen)
 	if err != nil {
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Start scenario error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }

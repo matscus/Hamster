@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Services/service"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //StopService - handle for stop services and update him status
@@ -13,8 +14,7 @@ func StopService(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	tempService, _ := AllService[s.ID]
@@ -23,8 +23,7 @@ func StopService(w http.ResponseWriter, r *http.Request) {
 	user, _ := HostsAndUsers.Load(s.Host)
 	err = s.Stop(user.(string))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	s.Status = "stop"

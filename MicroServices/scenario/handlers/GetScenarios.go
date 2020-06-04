@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetScenarios - handle return state all scenario and generators
@@ -33,11 +34,8 @@ func GetScenarios(w http.ResponseWriter, r *http.Request) {
 		res.Generators = scn.GetResponseAllData.Generators
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario ncode GetResponseAllData error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario Encode GetResponseAllData error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
+			return
 		}
 		return
 	}

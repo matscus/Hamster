@@ -9,6 +9,7 @@ import (
 
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Services/service"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetAllServiceBins -  handle function, for return ALL servicebins info
@@ -18,29 +19,18 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 	projects := jwttoken.GetUserProjects(strings.TrimSpace(splitToken[1]))
 	projectsID, err := pgClient.GetProjectsIDtoString(projects)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Upload file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	bins, err := pgClient.GetAllServiceBinsByOwner(projectsID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Upload file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(bins)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -48,20 +38,13 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 func GetAllServiceBinsType(w http.ResponseWriter, r *http.Request) {
 	bins, err := pgClient.GetAllServiceBinsType()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Get all ServiceBins types error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Upload file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(bins)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -79,22 +62,14 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		file, header, err := r.FormFile("uploadFile")
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Upload file error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Upload file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		defer file.Close()
 		s.Name = header.Filename
 		err = s.CreateBin(file, own)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -110,11 +85,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 			}
 			err = s.UpdateBin()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				httperror.WriteError(w, http.StatusInternalServerError, err)
 				return
 			}
 			w.WriteHeader(http.StatusOK)

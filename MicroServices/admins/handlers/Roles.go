@@ -6,26 +6,20 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Roles/roles"
+	"github.com/matscus/Hamster/Package/httperror"
 )
 
 //GetAllRoles -  return all projects
 func GetAllRoles(w http.ResponseWriter, r *http.Request) {
 	allroles, err := pgClient.GetAllRoles()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	err = json.NewEncoder(w).Encode(allroles)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
 
@@ -34,11 +28,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	role := roles.Role{}
 	err := json.NewDecoder(r.Body).Decode(&role)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		httperror.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	role.DBClient = pgClient
@@ -46,11 +36,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = role.Create()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -61,11 +47,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		err = role.Update()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -76,11 +58,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err = role.Delete()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			httperror.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
