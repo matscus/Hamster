@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //StopScenario - handle to stop scenario
@@ -14,12 +14,12 @@ func StopScenario(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Decode error", err))
 		return
 	}
 	err = s.Stop()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Stop error", err))
 		return
 	}
 }

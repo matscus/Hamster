@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetScenarios - handle return state all scenario and generators
@@ -16,11 +15,7 @@ func GetScenarios(w http.ResponseWriter, r *http.Request) {
 	page, ok := params["project"]
 	if ok {
 		if len(scn.GetResponseAllData.Scenarios) == 0 {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Len GetResponceAllData slice equally 0\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario len GetResponceAllData slice equally 0, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Scenario Len GetResponceAllData slice equally 0", nil))
 			return
 		}
 		res := scn.GetResponse{}
@@ -34,14 +29,10 @@ func GetScenarios(w http.ResponseWriter, r *http.Request) {
 		res.Generators = scn.GetResponseAllData.Generators
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Encode res error", err))
 			return
 		}
 		return
 	}
-	w.WriteHeader(http.StatusInternalServerError)
-	_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params hot found \"}"))
-	if errWrite != nil {
-		log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-	}
+	errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Params not found", nil))
 }

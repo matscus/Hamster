@@ -8,7 +8,7 @@ import (
 
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Services/service"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //Administration hadlrer for install service to host. Nor auto runnable
@@ -17,12 +17,12 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 	s := service.Service{}
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Decode service error", err))
 		return
 	}
 	sshUser, err := pgClient.GetUserToHost(s.Host)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("GetUsersToHost error", err))
 		return
 	}
 	s.DBClient = pgClient
@@ -33,7 +33,7 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		serviceBin, err := s.DBClient.GetServiceBin(s.BinsID)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("GetServiceBin error", err))
 			return
 		}
 		s.Name = serviceBin.Name
@@ -43,7 +43,7 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 		s.Type = serviceBin.Type
 		err = s.Create(sshUser, own)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Create error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -54,7 +54,7 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 		if own == s.Owner || own == "admin" {
 			err = s.Update()
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Update error", err))
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -73,7 +73,7 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 		if own == s.Owner || own == "admin" {
 			service, err := pgClient.GetService(s.ID)
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Ger service error", err))
 				return
 			}
 			s.Name = service.Name
@@ -81,7 +81,7 @@ func Administration(w http.ResponseWriter, r *http.Request) {
 			s.Host = service.Host
 			err = s.Delete(own)
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Delete error", err))
 				return
 			}
 			w.WriteHeader(http.StatusOK)

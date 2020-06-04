@@ -1,12 +1,12 @@
-package httperror
+package errorImpl
 
 import (
 	"log"
 	"net/http"
 )
 
-//WriteError - default write error func
-func WriteError(w http.ResponseWriter, httpStatusCode int, err error) {
+//WriteHTTPError - default write error func
+func WriteHTTPError(w http.ResponseWriter, httpStatusCode int, err error) {
 	w.WriteHeader(httpStatusCode)
 	_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
 	if errWrite != nil {

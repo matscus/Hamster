@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Roles/roles"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetAllRoles -  return all projects
 func GetAllRoles(w http.ResponseWriter, r *http.Request) {
 	allroles, err := pgClient.GetAllRoles()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get all roles error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(allroles)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode get all roles error", err))
 		return
 	}
 }
@@ -28,7 +28,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	role := roles.Role{}
 	err := json.NewDecoder(r.Body).Decode(&role)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Decode roles error", err))
 		return
 	}
 	role.DBClient = pgClient
@@ -36,7 +36,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = role.Create()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Create error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -47,7 +47,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		err = role.Update()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Update error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -58,7 +58,7 @@ func Roles(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err = role.Delete()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Delete error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)

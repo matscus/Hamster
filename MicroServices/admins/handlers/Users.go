@@ -6,26 +6,20 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Users/users"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetAllUsers -  handle function, for get new token
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	allusers, err := pgClient.GetAllUsers()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get all users error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(allusers)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode get all users error", err))
+		return
 	}
 }
 
@@ -34,11 +28,7 @@ func Users(w http.ResponseWriter, r *http.Request) {
 	user := users.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Decode users error", err))
 		return
 	}
 	user.DBClient = pgClient
@@ -46,11 +36,8 @@ func Users(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = user.Create()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Create user error", err))
+			return
 		} else {
 			w.WriteHeader(http.StatusOK)
 			_, errWrite := w.Write([]byte("{\"Message\":\"User created \"}"))
@@ -61,11 +48,8 @@ func Users(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		err := user.Update()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Update user error", err))
+			return
 		} else {
 			w.WriteHeader(http.StatusOK)
 			_, errWrite := w.Write([]byte("{\"Message\":\"User updated \"}"))
@@ -77,11 +61,8 @@ func Users(w http.ResponseWriter, r *http.Request) {
 		if user.ID != 1 {
 			err := user.Delete()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Delete user error", err))
+				return
 			} else {
 				w.WriteHeader(http.StatusOK)
 				_, errWrite := w.Write([]byte("{\"Message\":\"User deleted \"}"))
@@ -90,11 +71,8 @@ func Users(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"You cannot remove God \"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] ALARMA!!!, someone tried deleted the god, was send in the bus, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("You cannot remove God", nil))
+			return
 		}
 	}
 }
@@ -104,21 +82,13 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	user := users.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Decode user error", err))
 		return
 	}
 	user.DBClient = pgClient
 	err = user.ChangePassword()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Change password error", err))
 		return
 	}
 	w.WriteHeader(http.StatusOK)

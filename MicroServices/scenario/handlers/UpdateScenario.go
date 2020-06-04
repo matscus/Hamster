@@ -9,7 +9,7 @@ import (
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //UpdateOrDeleteScenario - handle for update scenario values to table
@@ -18,7 +18,7 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Parse form scenaroiID error", err))
 			return
 		}
 		s := scenario.Scenario{
@@ -31,33 +31,33 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		oldname, err := s.GetNameForID()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Get name error", err))
 			return
 		}
 		err = os.Rename(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+oldname+".zip", os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip")
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Rename error", err))
 			return
 		}
 		err = r.ParseMultipartForm(32 << 20)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Parse multipartform error", err))
 			return
 		}
 		file, _, err := r.FormFile("uploadFile")
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Get form uploadFiles error", err))
 			return
 		}
 		if file == nil {
 			err = s.Update()
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Update error", err))
 				return
 			}
 			err = scn.InitData()
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Init data error", err))
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -70,23 +70,23 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		f, err := os.OpenFile(os.Getenv("DIRPROJECTS")+"/"+s.Projects+"/"+s.Gun+"/"+s.Name+".zip", os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Open file error", err))
 			return
 		}
 		defer f.Close()
 		_, err = io.Copy(f, file)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("IO copy file error", err))
 			return
 		}
 		err = s.Update()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Update error", err))
 			return
 		}
 		err = scn.InitData()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Init data error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -96,9 +96,8 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 	case "DELETE":
 		id, err := strconv.ParseInt(r.FormValue("scenarioID"), 10, 64)
-		log.Println(id)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Parse form scenarioID error", err))
 			return
 		}
 		s := scenario.Scenario{
@@ -111,17 +110,17 @@ func UpdateOrDeleteScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		err = s.DeleteScenario()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Delete error", err))
 			return
 		}
 		err = os.Remove(os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip")
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Remove dir error", err))
 			return
 		}
 		err = scn.InitData()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Init data error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)

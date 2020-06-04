@@ -9,7 +9,7 @@ import (
 
 	"github.com/matscus/Hamster/Package/JWTToken/jwttoken"
 	"github.com/matscus/Hamster/Package/Services/service"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetAllServiceBins -  handle function, for return ALL servicebins info
@@ -19,17 +19,17 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 	projects := jwttoken.GetUserProjects(strings.TrimSpace(splitToken[1]))
 	projectsID, err := pgClient.GetProjectsIDtoString(projects)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get all projects id to string error", err))
 		return
 	}
 	bins, err := pgClient.GetAllServiceBinsByOwner(projectsID)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get all service bins by ouner error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(bins)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode bins error", err))
 		return
 	}
 }
@@ -38,12 +38,12 @@ func GetAllServiceBins(w http.ResponseWriter, r *http.Request) {
 func GetAllServiceBinsType(w http.ResponseWriter, r *http.Request) {
 	bins, err := pgClient.GetAllServiceBinsType()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get aaa service bins type error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(bins)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode bins error", err))
 		return
 	}
 }
@@ -62,14 +62,14 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		file, header, err := r.FormFile("uploadFile")
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get form uploadData error", err))
 			return
 		}
 		defer file.Close()
 		s.Name = header.Filename
 		err = s.CreateBin(file, own)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Create error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -85,7 +85,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 			}
 			err = s.UpdateBin()
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Update  error", err))
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -94,11 +94,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 				log.Printf("[ERROR] Host updated, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 			}
 		} else {
-			w.WriteHeader(http.StatusForbidden)
-			_, errWrite := w.Write([]byte("{\"Message\": You are not a owner for this service}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error  due: %s", errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusForbidden, errorImpl.AdminsError("You are not a owner for this service", nil))
 			return
 		}
 	case "DELETE":
@@ -110,11 +106,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 		if own == s.Owner || own == "god" {
 			err := s.DeleteBin()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Delete error", err))
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -123,11 +115,7 @@ func ServiceBins(w http.ResponseWriter, r *http.Request) {
 				log.Printf("[ERROR] Host deleted, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 			}
 		} else {
-			w.WriteHeader(http.StatusOK)
-			_, errWrite := w.Write([]byte("{\"Message\": You are not a owner for this service}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusForbidden, errorImpl.AdminsError("You are not a owner for this service", nil))
 			return
 		}
 	}

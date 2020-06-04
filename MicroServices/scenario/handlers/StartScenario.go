@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //StartScenario - handle to start scenario
@@ -15,7 +15,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Decode error", err))
 		return
 	}
 	runsgen, err := scn.CheckGen(s.Generators)
@@ -23,7 +23,8 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		err := json.NewEncoder(w).Encode(runsgen)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Encode runsgen error", err))
+			return
 		}
 		return
 	}
@@ -32,7 +33,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 		scn.RunsGenerators.Store(s.Name, s)
 		err = s.Start()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Start error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -45,7 +46,7 @@ func StartScenario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	err = json.NewEncoder(w).Encode(runsgen)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Encode runsgen error", err))
 		return
 	}
 }

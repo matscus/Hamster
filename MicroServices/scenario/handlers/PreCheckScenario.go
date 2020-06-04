@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,21 +15,21 @@ import (
 
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //PreCheckScenario - handle to rpe check scenario file, if mandatory thread groups params is nil, return fasle.
 func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("uploadFile")
 	if err != nil {
-		httperror.WriteError(w, http.StatusOK, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Get form uploadFile error", err))
 		return
 	}
 	defer file.Close()
 	bytesFile := make([]byte, 0, 0)
 	_, err = file.Read(bytesFile)
 	if err != nil {
-		httperror.WriteError(w, http.StatusOK, err)
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Read file  error", err))
 		return
 	}
 	authHeader := r.Header.Get("Authorization")
@@ -41,36 +42,32 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 			tempParseDir = tempParseDir + authHeader[0:19] + "/"
 			err = os.Mkdir(tempParseDir, os.FileMode(0755))
 			if err != nil {
-				httperror.WriteError(w, http.StatusOK, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Mkdir tempPasredir error", err))
 				return
 			}
 			fileName := authHeader[0:19] + header.Filename
 			newFile := tempParseDir + fileName
 			f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 			if err != nil {
-				httperror.WriteError(w, http.StatusOK, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Open file error", err))
 				return
 			}
 			defer f.Close()
 			_, err = io.Copy(f, file)
 			if err != nil {
-				httperror.WriteError(w, http.StatusOK, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("IO copy file error", err))
 				return
 			}
 			cmd := exec.Command("unzip", newFile, "-d", tempParseDir)
 			err = cmd.Run()
 			if err != nil {
-				httperror.WriteError(w, http.StatusOK, err)
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("unzip file error", err))
 				return
 			}
 			preparseResponce := make([]scn.PreParseResponce, 0, 0)
 			filesInfo, err := ioutil.ReadDir(tempParseDir)
 			if err != nil {
-				w.WriteHeader(http.StatusOK)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario read temp dir error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario read temp dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Read tempParseDir error", err))
 				return
 			}
 			fileIfNotExist := true
@@ -84,33 +81,29 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 					var testplan jmxparser.JmeterTestPlan
 					err = xml.Unmarshal(byteValue, &testplan)
 					if err != nil {
+						strError := errorImpl.ScenarioError("Unmarshal testplan error", err)
 						errRemove := os.RemoveAll(tempParseDir)
-						if err != nil {
-							httperror.WriteError(w, http.StatusInternalServerError, err)
+						if errRemove != nil {
+							strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
+							errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemove))
+							return
+						} else {
+							errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Unmarshal testplan error", err))
 							return
 						}
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario Unmarshal file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
-						return
 					}
 					tgParams, err := testplan.GetTreadGroupsParams(byteValue)
 					if err != nil {
+						strError := errorImpl.ScenarioError("Get treadGroup error", err)
 						errRemove := os.RemoveAll(tempParseDir)
-						w.WriteHeader(http.StatusInternalServerError)
 						if errRemove != nil {
-							_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + "\"}"))
-							if errWrite != nil {
-								log.Printf("[ERROR] Scenario get tread groups params  and remove temp dir errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-							}
+							strError = errors.New(strError.Error() + ",RemoveAll temp dir error" + err.Error())
+							errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Get treadGroup error", errRemove))
+							return
+						} else {
+							errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Get treadGroup error", err))
 							return
 						}
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario get tread groups params error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
-						return
 					}
 					l := len(tgParams)
 					for i := 0; i < l; i++ {
@@ -127,12 +120,10 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 					}
 					if len(preparseResponce) == 0 {
 						cache.Set(fileName, scn.ScriptCache{ScriptFile: bytesFile, ParseParams: tgParams}, 1*time.Minute)
-						errRemove := os.RemoveAll(tempParseDir)
-						if errRemove != nil {
-							if err != nil {
-								httperror.WriteError(w, http.StatusInternalServerError, errRemove)
-								return
-							}
+						err := os.RemoveAll(tempParseDir)
+						if err != nil {
+							errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Remove testParseDir error", err))
+							return
 						}
 						w.WriteHeader(http.StatusOK)
 						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario structure complies with the standard\"}"))
@@ -141,34 +132,25 @@ func PreCheckScenario(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					} else {
-						errRemove := os.RemoveAll(tempParseDir)
-						if errRemove != nil {
-							if err != nil {
-								httperror.WriteError(w, http.StatusInternalServerError, errRemove)
-								return
-							}
+						err := os.RemoveAll(tempParseDir)
+						if err != nil {
+							errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Remove testParseDir error", err))
+							return
 						}
 						err = json.NewEncoder(w).Encode(preparseResponce)
 						if err != nil {
-							httperror.WriteError(w, http.StatusOK, err)
+							errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Encode preparse error", err))
 							return
 						}
 					}
 				}
 			}
 			if fileIfNotExist {
-				w.WriteHeader(http.StatusNoContent)
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario - not found jmx file\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario - not found jmx file, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("File not exist error", nil))
+				return
 			}
-			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create dir error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario create dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusOK, errorImpl.ScenarioError("Create dir error", err))
+		return
 	}
 }

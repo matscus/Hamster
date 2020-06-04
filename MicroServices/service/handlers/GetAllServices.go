@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/Package/Services/service"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetAllServices -  handle for response all services
@@ -26,7 +26,7 @@ func GetAllServices(w http.ResponseWriter, r *http.Request) {
 		}
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Encode res error", err))
 			return
 		}
 		return

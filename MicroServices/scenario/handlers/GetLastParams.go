@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetLastParams - init slace for response last scenario params
@@ -22,8 +21,7 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 				params := res.(scn.StartRequest)
 				err := json.NewEncoder(w).Encode(params)
 				if err != nil {
-					httperror.WriteError(w, http.StatusInternalServerError, err)
-					return
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Encode params error", err))
 				}
 				return
 			}
@@ -31,17 +29,11 @@ func GetLastParams(w http.ResponseWriter, r *http.Request) {
 			nilres := scn.StartRequest{}
 			err := json.NewEncoder(w).Encode(nilres)
 			if err != nil {
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario encode json error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario encode json error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Encode nilres error", err))
+				return
 			}
 		}
 		return
 	}
-	w.WriteHeader(http.StatusInternalServerError)
-	_, errWrite := w.Write([]byte("{\"Message\":\"Scenario params not found\"}"))
-	if errWrite != nil {
-		log.Printf("[ERROR] Scenario params not found, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-	}
+	errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Params not found", nil))
 }

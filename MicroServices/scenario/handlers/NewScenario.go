@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/xml"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,7 +14,7 @@ import (
 	"github.com/matscus/Hamster/MicroServices/scenario/scn"
 	"github.com/matscus/Hamster/Package/JMXParser/jmxparser"
 	"github.com/matscus/Hamster/Package/Scenario/scenario"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //NewScenario - handle to insert new scenario to table
@@ -27,24 +28,20 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	}
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Parse multipartform error", err))
 		return
 	}
 	ifExist, _ := s.CheckScenario()
 	if ifExist {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"Dublicate scenario name in the project\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Dublicate scenario name in the projec, but Not Writing to ResponseWriter due: %s", errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Dublicate name in the project", nil))
 		return
 	}
 	file, header, err := r.FormFile("uploadFile")
-	defer file.Close()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Get form uploadFile error", err))
 		return
 	}
+	defer file.Close()
 	authHeader := r.Header.Get("Authorization")
 	splitToken := strings.Split(authHeader, "Bearer ")
 	authHeader = strings.TrimSpace(splitToken[1])
@@ -55,7 +52,7 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 		newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 		err := ioutil.WriteFile(newFile, scripts.ScriptFile, os.FileMode(0755))
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Write fole error", err))
 			return
 		}
 		l := len(scripts.ParseParams)
@@ -71,24 +68,19 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 		}
 		err = s.InsertToDB()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			strError := errorImpl.ScenarioError("Insert to dabasase error", err)
 			errRemove := os.Remove(newFile)
 			if errRemove != nil {
-				_, errWrite := w.Write([]byte("{\"Message\":\" Scenatio insert to DB error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenatio insert to DB error and remove file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", Remove fole error", errRemove))
+				return
+			} else {
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Insert to dabasase error", err))
 				return
 			}
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenatio insert to DB error: " + err.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenatio insert to DB error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
-			return
 		}
 		err = scn.InitData()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Init data error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -101,83 +93,66 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 	newFile := os.Getenv("DIRPROJECTS") + "/" + s.Projects + "/" + s.Gun + "/" + s.Name + ".zip"
 	f, err := os.OpenFile(newFile, os.O_CREATE|os.O_RDWR, os.FileMode(0755))
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Open file error", err))
 		return
 	}
 	defer f.Close()
 	_, err = io.Copy(f, file)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		strError := errorImpl.ScenarioError("IO copy error", err)
 		errRemove := os.Remove(newFile)
 		if errRemove != nil {
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO Copy error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario IO Copy and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", Remove file error", errRemove))
+			return
+		} else {
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("IO copy error", err))
 			return
 		}
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO Copy error: " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario IO Copy error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
-		return
 	}
 	tempDir := os.Getenv("DIRPROJECTS") + "/temp/"
 	err = os.Mkdir(tempDir, os.FileMode(0755))
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Open file error", err))
 		return
 	}
 	cmd := exec.Command("unzip", newFile, "-d", tempDir)
 	err = cmd.Run()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		strError := errorImpl.ScenarioError("Unzip file error", err)
 		errRemove := os.RemoveAll(tempDir)
 		if errRemove != nil {
+			strError = errors.New(strError.Error() + ", RemoveAll temp dir error" + err.Error())
 			errRemoveNewFile := os.Remove(newFile)
 			if errRemoveNewFile != nil {
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario unzip file error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario unzip file and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+				return
+			} else {
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 				return
 			}
-			_, errWrite := w.Write([]byte("{\"Message\":\" Unzip  " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario unzip file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+		} else {
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Unzip file error", err))
 			return
 		}
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario unzip file error " + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario unzip file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
-		return
 	}
 	filesInfo, err := ioutil.ReadDir(tempDir)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		strError := errorImpl.ScenarioError("Read temp dir error", err)
 		errRemove := os.RemoveAll(tempDir)
 		if errRemove != nil {
+			strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
 			errRemoveNewFile := os.Remove(newFile)
 			if errRemoveNewFile != nil {
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario read temp dir error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario read temp dir and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+				return
+			} else {
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 				return
 			}
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario read temp dir error:" + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario read temp dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+		} else {
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Read temp dir error", err))
 			return
 		}
-		_, errWrite := w.Write([]byte("{\"Message\":\"Scenario read temp dir error:" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Scenario read temp dir error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
-		return
 	}
 	fileIfNotExist := true
 	for i := 0; i < len(filesInfo); i++ {
@@ -186,105 +161,81 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			fileIfNotExist = false
 			file, err := os.Open(tempDir + name)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Open jmx file error", err)
 				errRemove := os.RemoveAll(tempDir)
 				if errRemove != nil {
+					strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
 					errRemoveNewFile := os.Remove(newFile)
 					if errRemoveNewFile != nil {
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario open jmx file error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario open jmx file and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+						return
+					} else {
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 						return
 					}
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario open jmx file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario open jmx file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Open jmx file error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario open jmx file error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario open jmx file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			defer file.Close()
 			byteValue, err := ioutil.ReadAll(file)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Read file error", err)
 				errRemove := os.RemoveAll(tempDir)
 				if errRemove != nil {
+					strError = errorImpl.ScenarioError(strError.Error()+",RemoveAll temp dir error", errRemove)
 					errRemoveNewFile := os.Remove(newFile)
 					if errRemoveNewFile != nil {
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO ReadAll file error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR]Scenario IO ReadAll file and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+						return
+					} else {
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 						return
 					}
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO ReadAll file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario IO ReadAll file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Read file error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario IO ReadAll file error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario IO ReadAll file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			var testplan jmxparser.JmeterTestPlan
 			err = xml.Unmarshal(byteValue, &testplan)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Unmarshal testplan error", err)
 				errRemove := os.RemoveAll(tempDir)
 				if errRemove != nil {
+					strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
 					errRemoveNewFile := os.Remove(newFile)
 					if errRemoveNewFile != nil {
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario Unmarshal file and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+						return
+					} else {
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 						return
 					}
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario Unmarshal file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Unmarshal testplan error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario Unmarshal file error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario Unmarshal file error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			tgParams, err := testplan.GetTreadGroupsParams(byteValue)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Get treadgroup error", err)
 				errRemove := os.RemoveAll(tempDir)
 				if errRemove != nil {
+					strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
 					errRemoveNewFile := os.Remove(newFile)
 					if errRemoveNewFile != nil {
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario get tread groups params and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+						return
+					} else {
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 						return
 					}
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario get tread groups params error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Unmarshal testplan error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario get tread groups params error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR]Scenario get tread groups params error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			l := len(tgParams)
 			for i := 0; i < l; i++ {
@@ -299,45 +250,34 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			}
 			err = os.RemoveAll(tempDir)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Remove test dir error", err)
 				errRemoveNewFile := os.Remove(newFile)
 				if errRemoveNewFile != nil {
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario remove tempdir: " + err.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario remove tempdir and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+					return
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Remove test dir error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"Scenario remove tempdir error: " + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR] Scenario remove tempdir and remove file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			err = s.InsertToDB()
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				strError := errorImpl.ScenarioError("Insert database error", err)
 				errRemove := os.RemoveAll(tempDir)
 				if errRemove != nil {
+					strError = errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove)
 					errRemoveNewFile := os.Remove(newFile)
 					if errRemoveNewFile != nil {
-						_, errWrite := w.Write([]byte("{\"Message\":\"Scenario insert to DB error: " + err.Error() + " and error remove tempDir " + errRemove.Error() + " and error remove file " + errRemoveNewFile.Error() + "\"}"))
-						if errWrite != nil {
-							log.Printf("[ERROR] Scenario insert to DB and remove temp dir and file errors, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-						}
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error(), errRemoveNewFile))
+						return
+					} else {
+						errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError(strError.Error()+", RemoveAll temp dir error", errRemove))
 						return
 					}
-					_, errWrite := w.Write([]byte("{\"Message\":\"Scenario insert to DB error:" + err.Error() + " and error remove file " + errRemove.Error() + "\"}"))
-					if errWrite != nil {
-						log.Printf("[ERROR] Scenario insert to DB error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-					}
+				} else {
+					errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Insert database error", err))
 					return
 				}
-				_, errWrite := w.Write([]byte("{\"Message\":\"InsertToDB" + err.Error() + "\"}"))
-				if errWrite != nil {
-					log.Printf("[ERROR]Scenario insert to DB error, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-				}
-				return
 			}
 			w.WriteHeader(http.StatusOK)
 			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario create complited\"}"))
@@ -346,17 +286,14 @@ func NewScenario(w http.ResponseWriter, r *http.Request) {
 			}
 			err = scn.InitData()
 			if err != nil {
-				httperror.WriteError(w, http.StatusInternalServerError, err)
+				errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Init data error", err))
 				return
 			}
 			break
 		}
 		if fileIfNotExist {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, errWrite := w.Write([]byte("{\"Message\":\"Scenario not found jmx file in zip\"}"))
-			if errWrite != nil {
-				log.Printf("[ERROR] Scenario not found jmx file in zip, but Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-			}
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ScenarioError("Scenario not found jmx file in zip", nil))
+			return
 		}
 	}
 }

@@ -7,19 +7,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/matscus/Hamster/Package/Hosts/hosts"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetAllHosts -  handle function, for get all hosts
 func GetAllHosts(w http.ResponseWriter, r *http.Request) {
 	allhosts, err := pgClient.GetAllHosts()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get all hosts error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(allhosts)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode all host error", err))
 		return
 	}
 }
@@ -30,12 +30,12 @@ func GetAllHostsWithProject(w http.ResponseWriter, r *http.Request) {
 	project, _ := params["project"]
 	allhosts, err := pgClient.GetAllHostsWithProject(project)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Get All hosts with project error", err))
 		return
 	}
 	err = json.NewEncoder(w).Encode(allhosts)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Encode get all host with project error", err))
 		return
 	}
 }
@@ -45,7 +45,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	host := hosts.Host{}
 	err := json.NewDecoder(r.Body).Decode(&host)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Decode host error", err))
 		return
 	}
 	host.DBClient = pgClient
@@ -53,7 +53,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		err = host.Create()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Create error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -64,7 +64,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		err = host.Update()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Update error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -75,7 +75,7 @@ func Hosts(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err = host.Delete()
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AdminsError("Delete error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)

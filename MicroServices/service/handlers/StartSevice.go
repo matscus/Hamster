@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Services/service"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //StartSevice - handle for start services and update him status
@@ -15,7 +15,7 @@ func StartSevice(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = json.NewDecoder(r.Body).Decode(&s)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Decode service error", err))
 		return
 	}
 	tempService, _ := AllService[s.ID]
@@ -29,7 +29,7 @@ func StartSevice(w http.ResponseWriter, r *http.Request) {
 		user, _ := HostsAndUsers.Load(s.Host)
 		err = s.Run(user.(string))
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Run error", err))
 			return
 		}
 		s.Status = "run"
@@ -43,7 +43,7 @@ func StartSevice(w http.ResponseWriter, r *http.Request) {
 	user, _ := HostsAndUsers.Load(s.Host)
 	err = s.Run(user.(string))
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.ServiceError("Run error", err))
 		return
 	}
 	s.Status = "run"

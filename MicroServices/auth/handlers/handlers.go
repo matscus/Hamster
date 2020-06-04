@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/matscus/Hamster/Package/Users/users"
-	"github.com/matscus/Hamster/Package/httperror"
+	"github.com/matscus/Hamster/Package/errorImpl"
 )
 
 //GetToken -  handle function, for get new token
@@ -16,28 +16,24 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	var token string
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AuthError("Decode user error", err))
 		return
 	}
 	user.DBClient = pgClient
 	res, err := user.CheckUser()
 	if !res {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
-		if errWrite != nil {
-			log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
-		}
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AuthError("Check users error", err))
 		return
 	}
 	ok, err := user.CheckPasswordExp()
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AuthError("Check password exp error", err))
 		return
 	}
 	if ok {
 		token, err = user.NewTokenString(false)
 		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, err)
+			errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AuthError("Get new token error", err))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -49,7 +45,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err = user.NewTokenString(true)
 	if err != nil {
-		httperror.WriteError(w, http.StatusInternalServerError, err)
+		errorImpl.WriteHTTPError(w, http.StatusInternalServerError, errorImpl.AuthError("Get new token error", err))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
