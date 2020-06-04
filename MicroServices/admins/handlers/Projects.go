@@ -71,6 +71,16 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR]User created, but  Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	case "PUT":
+		name, err := project.DBClient.GetProjectName(project.ID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, errWrite := w.Write([]byte("{\"Message\":\"" + err.Error() + "\"}"))
+			if errWrite != nil {
+				log.Printf("[ERROR] Not Writing to ResponseWriter error %s due: %s", err.Error(), errWrite.Error())
+			}
+			return
+		}
+		os.Rename(os.Getenv("DIRPROJECTS")+"/"+name, os.Getenv("DIRPROJECTS")+"/"+project.Name)
 		err = project.Update()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -86,6 +96,7 @@ func Projects(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR] Project updated, but Not Writing to ResponseWriter due: %s", errWrite.Error())
 		}
 	case "DELETE":
+		os.Remove(os.Getenv("DIRPROJECTS") + "/" + project.Name)
 		err = project.Delete()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
