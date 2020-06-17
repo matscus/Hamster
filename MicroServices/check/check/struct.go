@@ -1,7 +1,10 @@
 package check
 
+import "sync"
+
 //Result - result structure, contains the stend status, slice monitoring services/host slice and their status.
 type Result struct {
+	sync.RWMutex
 	ServiceRS []ServerRS `json:"services"`
 	//Monitoring []Monitoring `json:"Monitoring"`
 	Hosts struct {

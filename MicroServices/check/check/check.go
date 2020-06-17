@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/matscus/Hamster/Package/Services/service"
 )
@@ -36,32 +37,22 @@ func InitGetResponseAllData(project string) (responsealldata *[]service.Service,
 }
 
 //CheckStend - function to check stehd, checks the status of monitoring agents, memory utilization, hard disks and processors.
-func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
-	var host string
-	var port int
-	var id int64
-	prometheusstate := true
+func CheckStend(getResponceAllData *[]service.Service) (*Result, error) {
+	var err error
+	res := Result{}
+	prometheusstate := false
 	prometheusUri := os.Getenv("PROMETHEUSURI")
 	temp := make(map[string]Host)
 	l := len(*getResponceAllData)
 	checkhdd := CheckHDD{}
 	checkcpu := CheckCPU{}
 	checkmem := CheckMemory{}
+	wg := sync.WaitGroup{}
 	for i := 0; i < l; i++ {
-		id = (*getResponceAllData)[i].ID
-		host = (*getResponceAllData)[i].Host
-		port = (*getResponceAllData)[i].Port
-		conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
-		if err != nil {
-			res.ServiceRS = append(res.ServiceRS, ServerRS{ID: id, Status: false})
-			if (*getResponceAllData)[i].Name == "prometheus" {
-				prometheusstate = false
-			}
-		} else {
-			res.ServiceRS = append(res.ServiceRS, ServerRS{ID: id, Status: true})
-			conn.Close()
-		}
+		wg.Add(1)
+		go check(i, getResponceAllData, &prometheusstate, &res, &wg)
 	}
+	wg.Wait()
 	if prometheusstate {
 		res.Hosts.PrometheusState = true
 		responsefs, err := http.Get(prometheusUri + "?query=node_filesystem_avail_bytes/node_filesystem_size_bytes*100")
@@ -148,5 +139,21 @@ func CheckStend(getResponceAllData *[]service.Service) (res Result, err error) {
 		res.Hosts.PrometheusState = false
 		err = errors.New("Prometheus is not avalible")
 	}
-	return res, err
+	return &res, err
+}
+
+func check(id int, getResponceAllData *[]service.Service, prometheusstate *bool, res *Result, wg *sync.WaitGroup) {
+	conn, err := net.Dial("tcp", (*getResponceAllData)[id].Host+":"+strconv.Itoa((*getResponceAllData)[id].Port))
+	res.Lock()
+	if err != nil {
+		res.ServiceRS = append(res.ServiceRS, ServerRS{ID: (*getResponceAllData)[id].ID, Status: false})
+	} else {
+		res.ServiceRS = append(res.ServiceRS, ServerRS{ID: (*getResponceAllData)[id].ID, Status: true})
+		if (*getResponceAllData)[id].Name == "prometheus" {
+			*prometheusstate = true
+		}
+		conn.Close()
+	}
+	res.Unlock()
+	wg.Done()
 }

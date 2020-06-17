@@ -72,7 +72,7 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 			select {
 			case data = <-datachan:
 				res, err := check.CheckStend(data)
-				err = websocket.WriteJSON(c, res)
+				err = websocket.WriteJSON(c, &res)
 				if err != nil {
 					errClose := c.Close()
 					if errClose != nil {
@@ -83,7 +83,7 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 				}
 			default:
 				res, err := check.CheckStend(data)
-				err = websocket.WriteJSON(c, res)
+				err = websocket.WriteJSON(c, &res)
 				if err != nil {
 					errClose := c.Close()
 					if errClose != nil {
